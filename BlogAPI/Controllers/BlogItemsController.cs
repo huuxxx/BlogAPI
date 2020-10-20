@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BlogAPI.Models;
 using BlogAPI.DTO;
+using Security.Api.Filters;
 
 namespace BlogAPI.Controllers
 {
@@ -21,29 +22,29 @@ namespace BlogAPI.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<BlogItemDTO>>> GetBlogItem()
-        {
-            return await _context.BlogItem
-                .Select(x => BlogItemDTO(x))
-                .ToListAsync();
-        }
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<BlogItemDTO>>> GetBlogItem()
+        //{
+        //    return await _context.BlogItem
+        //        .Select(x => BlogItemDTO(x))
+        //        .ToListAsync();
+        //}
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<BlogItemDTO>> GetTodoItem(long id)
+        [HttpGet("{id}"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10), ValidateReferrer]
+        public async Task<ActionResult<BlogItemDTO>> GetBlogItem(long id)
         {
-            var todoItem = await _context.BlogItem.FindAsync(id);
+            var blogItem = await _context.BlogItem.FindAsync(id);
 
-            if (todoItem == null)
+            if (blogItem == null)
             {
                 return NotFound();
             }
 
-            return BlogItemDTO(todoItem);
+            return BlogItemDTO(blogItem);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateTodoItem(long id, BlogItemDTO blogItemDTO)
+        //[HttpPut("{id}")]
+        public async Task<IActionResult> UpdateBlogItem(long id, BlogItemDTO blogItemDTO)
         {
             if (id != blogItemDTO.Id)
             {
@@ -63,7 +64,7 @@ namespace BlogAPI.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException) when (!TodoItemExists(id))
+            catch (DbUpdateConcurrencyException) when (!BlogItemExists(id))
             {
                 return NotFound();
             }
@@ -71,7 +72,7 @@ namespace BlogAPI.Controllers
             return NoContent();
         }
 
-        [HttpPost]
+        //[HttpPost]
         public async Task<ActionResult<BlogItemDTO>> CreateBlogItem(BlogItemDTO blogItemDTO)
         {
             var blogItem = new BlogItem
@@ -90,7 +91,7 @@ namespace BlogAPI.Controllers
                 BlogItemDTO(blogItem));
         }
 
-        [HttpDelete("{id}")]
+        //[HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBlogItem(long id)
         {
             var blogItem = await _context.BlogItem.FindAsync(id);
@@ -106,7 +107,7 @@ namespace BlogAPI.Controllers
             return NoContent();
         }
 
-        private bool TodoItemExists(long id) =>
+        private bool BlogItemExists(long id) =>
              _context.BlogItem.Any(e => e.Id == id);
 
         private static BlogItemDTO BlogItemDTO(BlogItem blogItem) =>
