@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using BlogAPI.Models;
 using BlogAPI.DTO;
 using Security.Api.Filters;
+using Microsoft.Data.SqlClient;
 
 namespace BlogAPI.Controllers
 {
@@ -15,11 +16,11 @@ namespace BlogAPI.Controllers
     [ApiController]
     public class BlogItemsController : ControllerBase
     {
-        private readonly BlogItemContext _context;
+        private readonly BlogItemContext blogItemContext;
 
         public BlogItemsController(BlogItemContext context)
         {
-            _context = context;
+            blogItemContext = context;
         }
 
         //[HttpGet]
@@ -33,7 +34,26 @@ namespace BlogAPI.Controllers
         [HttpGet("{id}"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10), ValidateReferrer]
         public async Task<ActionResult<BlogItemDTO>> GetBlogItem(long id)
         {
-            var blogItem = await _context.BlogItem.FindAsync(id);
+            //var blogItem = await blogItemContext.BlogItem.FindAsync(id);
+
+            //if (blogItem == null)
+            //{
+            //    return NotFound();
+            //}
+
+            //return BlogItemDTO(blogItem);
+
+            string queryString = String.Format("SELECT * FROM [dbo].[BlogItem] WHERE ID = {0}", id);
+            string connectionString = "Data Source=DESKTOP-2BP5LIO;" + "Initial Catalog=BlogAPI;" + "Integrated Security=SSPI;";
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(queryString, connection);
+                connection.Open();
+                SqlDataReader reader = command.ExecuteReader();
+            }
+
+            var blogItem = await blogItemContext.BlogItem.FindAsync(id);
 
             if (blogItem == null)
             {
@@ -51,7 +71,7 @@ namespace BlogAPI.Controllers
                 return BadRequest();
             }
 
-            var blogItem = await _context.BlogItem.FindAsync(id);
+            var blogItem = await blogItemContext.BlogItem.FindAsync(id);
             if (blogItem == null)
             {
                 return NotFound();
@@ -62,7 +82,7 @@ namespace BlogAPI.Controllers
 
             try
             {
-                await _context.SaveChangesAsync();
+                await blogItemContext.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException) when (!BlogItemExists(id))
             {
@@ -82,8 +102,8 @@ namespace BlogAPI.Controllers
                 Content = blogItemDTO.Content
             };
 
-            _context.BlogItem.Add(blogItem);
-            await _context.SaveChangesAsync();
+            blogItemContext.BlogItem.Add(blogItem);
+            await blogItemContext.SaveChangesAsync();
 
             return CreatedAtAction(
                 nameof(GetBlogItem),
@@ -94,21 +114,21 @@ namespace BlogAPI.Controllers
         //[HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBlogItem(long id)
         {
-            var blogItem = await _context.BlogItem.FindAsync(id);
+            var blogItem = await blogItemContext.BlogItem.FindAsync(id);
 
             if (blogItem == null)
             {
                 return NotFound();
             }
 
-            _context.BlogItem.Remove(blogItem);
-            await _context.SaveChangesAsync();
+            blogItemContext.BlogItem.Remove(blogItem);
+            await blogItemContext.SaveChangesAsync();
 
             return NoContent();
         }
 
         private bool BlogItemExists(long id) =>
-             _context.BlogItem.Any(e => e.Id == id);
+             blogItemContext.BlogItem.Any(e => e.Id == id);
 
         private static BlogItemDTO BlogItemDTO(BlogItem blogItem) =>
             new BlogItemDTO
