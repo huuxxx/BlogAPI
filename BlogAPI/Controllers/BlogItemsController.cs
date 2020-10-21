@@ -34,6 +34,8 @@ namespace BlogAPI.Controllers
 
             string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
+            BlogItem blogItem = new BlogItem();
+
             using (SqlConnection connection = new SqlConnection(connString))
             {
                 SqlCommand command = new SqlCommand(queryString, connection);
@@ -41,10 +43,7 @@ namespace BlogAPI.Controllers
                 SqlDataReader reader = command.ExecuteReader();
             }
 
-            //var blogItem = await blogItemContext.BlogItem.FindAsync(id);
-
-            BlogItem blogItem = new BlogItem();
-
+            // TODO: proper mapping
             blogItem.Id = 1;
             blogItem.Title = "title";
             blogItem.Content = "content";
