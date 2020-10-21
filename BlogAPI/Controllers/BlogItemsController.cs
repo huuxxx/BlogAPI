@@ -9,6 +9,7 @@ using BlogAPI.Models;
 using BlogAPI.DTO;
 using Security.Api.Filters;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 
 namespace BlogAPI.Controllers
 {
@@ -16,49 +17,37 @@ namespace BlogAPI.Controllers
     [ApiController]
     public class BlogItemsController : ControllerBase
     {
+        private readonly IConfiguration configuration;
         private readonly BlogItemContext blogItemContext;
 
-        public BlogItemsController(BlogItemContext context)
+        public BlogItemsController(IConfiguration configuration, BlogItemContext context)
         {
+            this.configuration = configuration;
             blogItemContext = context;
         }
 
-        //[HttpGet]
-        //public async Task<ActionResult<IEnumerable<BlogItemDTO>>> GetBlogItem()
-        //{
-        //    return await _context.BlogItem
-        //        .Select(x => BlogItemDTO(x))
-        //        .ToListAsync();
-        //}
-
-        [HttpGet("{id}"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10), ValidateReferrer]
+        //[HttpGet("{id}"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10), ValidateReferrer]
+        [HttpGet("{id}"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10)]
         public async Task<ActionResult<BlogItemDTO>> GetBlogItem(long id)
         {
-            //var blogItem = await blogItemContext.BlogItem.FindAsync(id);
-
-            //if (blogItem == null)
-            //{
-            //    return NotFound();
-            //}
-
-            //return BlogItemDTO(blogItem);
-
             string queryString = String.Format("SELECT * FROM [dbo].[BlogItem] WHERE ID = {0}", id);
-            string connectionString = "Data Source=DESKTOP-2BP5LIO;" + "Initial Catalog=BlogAPI;" + "Integrated Security=SSPI;";
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+
+            using (SqlConnection connection = new SqlConnection(connString))
             {
                 SqlCommand command = new SqlCommand(queryString, connection);
                 connection.Open();
                 SqlDataReader reader = command.ExecuteReader();
             }
 
-            var blogItem = await blogItemContext.BlogItem.FindAsync(id);
+            //var blogItem = await blogItemContext.BlogItem.FindAsync(id);
 
-            if (blogItem == null)
-            {
-                return NotFound();
-            }
+            BlogItem blogItem = new BlogItem();
+
+            blogItem.Id = 1;
+            blogItem.Title = "title";
+            blogItem.Content = "content";
 
             return BlogItemDTO(blogItem);
         }
