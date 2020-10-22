@@ -38,7 +38,7 @@ namespace BlogAPI.Controllers
 
             string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-            BlogItem blogItem = new BlogItem();
+            BlogItemDTO blogItemDTO = new BlogItemDTO();
 
             using (SqlConnection connection = new SqlConnection(connString))
             {
@@ -48,14 +48,14 @@ namespace BlogAPI.Controllers
                 
                 if (reader.Read())
                 {
-                    blogItem.Id = (int)reader["ID"];
-                    blogItem.Title = reader["Title"].ToString();
-                    blogItem.Content = reader["Content"].ToString();
+                    blogItemDTO.Id = (int)reader["ID"];
+                    blogItemDTO.Title = reader["Title"].ToString();
+                    blogItemDTO.Content = reader["Content"].ToString();
                     connection.Close();
                 }
             }
 
-            return BlogItemDTO(blogItem);
+            return blogItemDTO;
         }
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace BlogAPI.Controllers
 
             string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-            BlogItem blogItem = new BlogItem();
+            BlogItemDTO blogItemDTO = new BlogItemDTO();
 
             using (SqlConnection connection = new SqlConnection(connString))
             {
@@ -79,89 +79,38 @@ namespace BlogAPI.Controllers
 
                 if (reader.Read())
                 {
-                    blogItem.Id = (int)reader["ID"];
-                    blogItem.Title = reader["Title"].ToString();
-                    blogItem.Content = reader["Content"].ToString();
+                    blogItemDTO.Id = (int)reader["ID"];
+                    blogItemDTO.Title = reader["Title"].ToString();
+                    blogItemDTO.Content = reader["Content"].ToString();
                     connection.Close();
                 }
             }
 
-            return BlogItemDTO(blogItem);
+            return blogItemDTO;
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBlog(long id, BlogItemDTO blogItemDTO)
+        [HttpPut("EditBlog{id}")]
+        public async Task<IActionResult> EditBlog(long id, BlogItemDTO blogItemDTO)
         {
-            if (id != blogItemDTO.Id)
-            {
-                return BadRequest();
-            }
-
-            var blogItem = await blogItemContext.BlogItem.FindAsync(id);
-            if (blogItem == null)
-            {
-                return NotFound();
-            }
-
-            blogItem.Id = blogItemDTO.Id;
-            blogItem.Title = blogItemDTO.Title;
-
-            try
-            {
-                await blogItemContext.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException) when (!BlogItemExists(id))
-            {
-                return NotFound();
-            }
-
+            // TODO
             return NoContent();
         }
 
-        [HttpPost]
+        [HttpPost("CreateBlog")]
         public async Task<ActionResult<BlogItemDTO>> CreateBlog(BlogItemDTO blogItemDTO)
         {
-            var blogItem = new BlogItem
-            {
-                Id = blogItemDTO.Id,
-                Title = blogItemDTO.Title,
-                Content = blogItemDTO.Content
-            };
-
-            blogItemContext.BlogItem.Add(blogItem);
-            await blogItemContext.SaveChangesAsync();
-
-            return CreatedAtAction(
-                nameof(GetBlog),
-                new { id = blogItem.Id },
-                BlogItemDTO(blogItem));
+            // TODO
+            return NoContent();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("DeleteBlog{id}")]
         public async Task<IActionResult> DeleteBlog(long id)
         {
-            var blogItem = await blogItemContext.BlogItem.FindAsync(id);
-
-            if (blogItem == null)
-            {
-                return NotFound();
-            }
-
-            blogItemContext.BlogItem.Remove(blogItem);
-            await blogItemContext.SaveChangesAsync();
-
+            // TODO
             return NoContent();
         }
 
         private bool BlogItemExists(long id) =>
              blogItemContext.BlogItem.Any(e => e.Id == id);
-
-        private static BlogItemDTO BlogItemDTO(BlogItem blogItem) =>
-            new BlogItemDTO
-            {
-                Id = blogItem.Id,
-                Title = blogItem.Title,
-                Content = blogItem.Content
-            };
     }
 }
