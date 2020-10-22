@@ -10,17 +10,17 @@ namespace Security.Api.Filters
 {
     /// <summary>    
     /// ActionFilterAttribute to validate referrer url    
-    /// </summary>    
-    /// <seealso cref="Microsoft.AspNetCore.Mvc.Filters.ActionFilterAttribute" />    
+    /// </summary>      
     [AttributeUsage(AttributeTargets.Method)]
     public sealed class ValidateReferrerAttribute : ActionFilterAttribute
     {
-        private IConfiguration _configuration;
+        private IConfiguration configuration;
 
-        /// <summary>    
-        /// Initializes a new instance of the <see cref="ValidateReferrerAttribute"/> class.    
-        /// </summary>    
-        public ValidateReferrerAttribute() { }
+        public ValidateReferrerAttribute(IConfiguration configuration)
+        {
+            this.configuration = configuration;
+        }
+
 
         /// <summary>    
         /// Called when /[action executing].    
@@ -28,7 +28,7 @@ namespace Security.Api.Filters
         /// <param name="context">The action context.</param>    
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            _configuration = (IConfiguration)context.HttpContext.RequestServices.GetService(typeof(IConfiguration));
+            configuration = (IConfiguration)context.HttpContext.RequestServices.GetService(typeof(IConfiguration));
             base.OnActionExecuting(context);
             if (!IsValidRequest(context.HttpContext.Request))
             {
@@ -58,15 +58,13 @@ namespace Security.Api.Filters
 
             if (string.IsNullOrWhiteSpace(referrerURL)) return false;
 
-            // get allowed client list to check    
-            var allowedUrls = _configuration.GetSection("CorsOrigin").Get<string[]>()?.Select(url => new Uri(url).Authority).ToList();
-
-            //add current host for swagger calls    
+            var allowedUrls = configuration.GetSection("CorsOrigin").Get<string[]>()?.Select(url => new Uri(url).Authority).ToList();
+  
             var host = request.Host.Value;
 
             allowedUrls.Add(host);
 
-            bool isValidClient = allowedUrls.Contains(new Uri(referrerURL).Authority); // comapre with base uri    
+            bool isValidClient = allowedUrls.Contains(new Uri(referrerURL).Authority);
 
             return isValidClient;
         }

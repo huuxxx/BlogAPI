@@ -30,7 +30,7 @@ namespace BlogAPI.Controllers
         [HttpGet("{id}"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10)]
         public async Task<ActionResult<BlogItemDTO>> GetBlogItem(long id)
         {
-            string queryString = String.Format("SELECT * FROM [dbo].[BlogItem] WHERE ID = {0}", id);
+            string queryString = string.Format("SELECT * FROM [dbo].[BlogItem] WHERE ID = {0}", id);
 
             string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
@@ -40,13 +40,16 @@ namespace BlogAPI.Controllers
             {
                 SqlCommand command = new SqlCommand(queryString, connection);
                 connection.Open();
-                SqlDataReader reader = command.ExecuteReader();
+                SqlDataReader reader = await command.ExecuteReaderAsync();
+                
+                if (reader.Read())
+                {
+                    blogItem.Id = (int)reader["ID"];
+                    blogItem.Title = reader["Title"].ToString();
+                    blogItem.Content = reader["Content"].ToString();
+                    connection.Close();
+                }
             }
-
-            // TODO: proper mapping
-            blogItem.Id = 1;
-            blogItem.Title = "title";
-            blogItem.Content = "content";
 
             return BlogItemDTO(blogItem);
         }
