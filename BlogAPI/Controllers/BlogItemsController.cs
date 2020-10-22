@@ -187,8 +187,5 @@ namespace BlogAPI.Controllers
                 return BadRequest();
             }
         }
-
-        private bool BlogItemExists(long id) =>
-             blogItemContext.BlogItem.Any(e => e.Id == id);
     }
 }
