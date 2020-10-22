@@ -26,9 +26,13 @@ namespace BlogAPI.Controllers
             blogItemContext = context;
         }
 
-        //[HttpGet("{id}"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10), ValidateReferrer]
-        [HttpGet("{id}"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10)]
-        public async Task<ActionResult<BlogItemDTO>> GetBlogItem(long id)
+        /// <summary>
+        /// Get specific blog post by ID
+        /// </summary>
+        /// <param name="id">ID of blog item</param>
+        /// <returns></returns>
+        [HttpGet("GetBlog{id}"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10)]
+        public async Task<ActionResult<BlogItemDTO>> GetBlog(long id)
         {
             string queryString = string.Format("SELECT * FROM [dbo].[BlogItem] WHERE ID = {0}", id);
 
@@ -54,8 +58,39 @@ namespace BlogAPI.Controllers
             return BlogItemDTO(blogItem);
         }
 
-        //[HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBlogItem(long id, BlogItemDTO blogItemDTO)
+        /// <summary>
+        /// Get latest blog
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("GetBlogLatest"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10)]
+        public async Task<ActionResult<BlogItemDTO>> GetBlogLatest()
+        {
+            string queryString = string.Format("SELECT * FROM [BlogItem] WHERE [ID] = (SELECT MAX(ID) FROM [BlogItem])");
+
+            string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+
+            BlogItem blogItem = new BlogItem();
+
+            using (SqlConnection connection = new SqlConnection(connString))
+            {
+                SqlCommand command = new SqlCommand(queryString, connection);
+                connection.Open();
+                SqlDataReader reader = await command.ExecuteReaderAsync();
+
+                if (reader.Read())
+                {
+                    blogItem.Id = (int)reader["ID"];
+                    blogItem.Title = reader["Title"].ToString();
+                    blogItem.Content = reader["Content"].ToString();
+                    connection.Close();
+                }
+            }
+
+            return BlogItemDTO(blogItem);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateBlog(long id, BlogItemDTO blogItemDTO)
         {
             if (id != blogItemDTO.Id)
             {
@@ -83,8 +118,8 @@ namespace BlogAPI.Controllers
             return NoContent();
         }
 
-        //[HttpPost]
-        public async Task<ActionResult<BlogItemDTO>> CreateBlogItem(BlogItemDTO blogItemDTO)
+        [HttpPost]
+        public async Task<ActionResult<BlogItemDTO>> CreateBlog(BlogItemDTO blogItemDTO)
         {
             var blogItem = new BlogItem
             {
@@ -97,13 +132,13 @@ namespace BlogAPI.Controllers
             await blogItemContext.SaveChangesAsync();
 
             return CreatedAtAction(
-                nameof(GetBlogItem),
+                nameof(GetBlog),
                 new { id = blogItem.Id },
                 BlogItemDTO(blogItem));
         }
 
-        //[HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBlogItem(long id)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteBlog(long id)
         {
             var blogItem = await blogItemContext.BlogItem.FindAsync(id);
 
