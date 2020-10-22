@@ -34,28 +34,35 @@ namespace BlogAPI.Controllers
         [HttpGet("GetBlog{id}"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10)]
         public async Task<ActionResult<BlogItemDTO>> GetBlog(long id)
         {
-            string queryString = string.Format("SELECT * FROM [dbo].[BlogItem] WHERE ID = {0}", id);
-
-            string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
-
-            BlogItemDTO blogItemDTO = new BlogItemDTO();
-
-            using (SqlConnection connection = new SqlConnection(connString))
+            try
             {
-                SqlCommand command = new SqlCommand(queryString, connection);
-                connection.Open();
-                SqlDataReader reader = await command.ExecuteReaderAsync();
-                
-                if (reader.Read())
-                {
-                    blogItemDTO.Id = (int)reader["ID"];
-                    blogItemDTO.Title = reader["Title"].ToString();
-                    blogItemDTO.Content = reader["Content"].ToString();
-                    connection.Close();
-                }
-            }
+                string queryString = string.Format("SELECT * FROM [dbo].[BlogItem] WHERE ID = {0}", id);
 
-            return blogItemDTO;
+                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+
+                BlogItemDTO blogItemDTO = new BlogItemDTO();
+
+                using (SqlConnection connection = new SqlConnection(connString))
+                {
+                    SqlCommand command = new SqlCommand(queryString, connection);
+                    connection.Open();
+                    SqlDataReader reader = await command.ExecuteReaderAsync();
+
+                    if (reader.Read())
+                    {
+                        blogItemDTO.Id = (int)reader["ID"];
+                        blogItemDTO.Title = reader["Title"].ToString();
+                        blogItemDTO.Content = reader["Content"].ToString();
+                        connection.Close();
+                    }
+                }
+
+                return blogItemDTO;
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
 
         /// <summary>
@@ -65,49 +72,120 @@ namespace BlogAPI.Controllers
         [HttpGet("GetBlogLatest"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10)]
         public async Task<ActionResult<BlogItemDTO>> GetBlogLatest()
         {
-            string queryString = string.Format("SELECT * FROM [BlogItem] WHERE [ID] = (SELECT MAX(ID) FROM [BlogItem])");
-
-            string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
-
-            BlogItemDTO blogItemDTO = new BlogItemDTO();
-
-            using (SqlConnection connection = new SqlConnection(connString))
+            try
             {
-                SqlCommand command = new SqlCommand(queryString, connection);
-                connection.Open();
-                SqlDataReader reader = await command.ExecuteReaderAsync();
+                string queryString = string.Format("SELECT * FROM [BlogItem] WHERE [ID] = (SELECT MAX(ID) FROM [BlogItem])");
 
-                if (reader.Read())
+                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+
+                BlogItemDTO blogItemDTO = new BlogItemDTO();
+
+                using (SqlConnection connection = new SqlConnection(connString))
                 {
-                    blogItemDTO.Id = (int)reader["ID"];
-                    blogItemDTO.Title = reader["Title"].ToString();
-                    blogItemDTO.Content = reader["Content"].ToString();
-                    connection.Close();
-                }
-            }
+                    SqlCommand command = new SqlCommand(queryString, connection);
+                    connection.Open();
+                    SqlDataReader reader = await command.ExecuteReaderAsync();
 
-            return blogItemDTO;
+                    if (reader.Read())
+                    {
+                        blogItemDTO.Id = (int)reader["ID"];
+                        blogItemDTO.Title = reader["Title"].ToString();
+                        blogItemDTO.Content = reader["Content"].ToString();
+                        connection.Close();
+                    }
+                }
+
+                return blogItemDTO;
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
 
+        /// <summary>
+        /// Edit existing blog post
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="blogItemDTO"></param>
+        /// <returns></returns>
         [HttpPut("EditBlog{id}")]
         public async Task<IActionResult> EditBlog(long id, BlogItemDTO blogItemDTO)
         {
-            // TODO
-            return NoContent();
+            try
+            {
+                string queryString = string.Format("UPDATE [BlogItem] SET Title = '{0}', Content = '{1}' WHERE ID = {2}", blogItemDTO.Title, blogItemDTO.Content, id);
+
+                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+
+                using (SqlConnection connection = new SqlConnection(connString))
+                {
+                    SqlCommand command = new SqlCommand(queryString, connection);
+                    connection.Open();
+                }
+
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
 
+        /// <summary>
+        /// Create new blog
+        /// </summary>
+        /// <param name="blogItemDTO"></param>
+        /// <returns></returns>
         [HttpPost("CreateBlog")]
         public async Task<ActionResult<BlogItemDTO>> CreateBlog(BlogItemDTO blogItemDTO)
         {
-            // TODO
-            return NoContent();
+            try
+            {
+                string queryString = string.Format("INSERT INTO [BlogItem] (Title, Content, Requests) VALUES ('{0}', '{1}', 0)", blogItemDTO.Title, blogItemDTO.Content);
+
+                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+
+                using (SqlConnection connection = new SqlConnection(connString))
+                {
+                    SqlCommand command = new SqlCommand(queryString, connection);
+                    connection.Open();
+                }
+
+                return blogItemDTO;
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
 
+        /// <summary>
+        /// Delete existing blog
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete("DeleteBlog{id}")]
         public async Task<IActionResult> DeleteBlog(long id)
         {
-            // TODO
-            return NoContent();
+            try
+            {
+                string queryString = string.Format("DELETE FROM [BlogItem] WHERE ID = {0}", id);
+
+                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+
+                using (SqlConnection connection = new SqlConnection(connString))
+                {
+                    SqlCommand command = new SqlCommand(queryString, connection);
+                    connection.Open();
+                }
+
+                return Ok();
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
 
         private bool BlogItemExists(long id) =>
