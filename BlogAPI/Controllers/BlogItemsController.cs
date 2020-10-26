@@ -69,8 +69,9 @@ namespace BlogAPI.Controllers
 
                 return blogItemDTO;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _ = ex;
                 return BadRequest();
             }
         }
@@ -116,8 +117,9 @@ namespace BlogAPI.Controllers
 
                 return blogItemDTO;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _ = ex;
                 return BadRequest();
             }
         }
@@ -145,8 +147,9 @@ namespace BlogAPI.Controllers
 
                 return Ok();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _ = ex;
                 return BadRequest();
             }
         }
@@ -173,8 +176,9 @@ namespace BlogAPI.Controllers
 
                 return blogItemDTO;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _ = ex;
                 return BadRequest();
             }
         }
@@ -201,8 +205,9 @@ namespace BlogAPI.Controllers
 
                 return Ok();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _ = ex;
                 return BadRequest();
             }
         }
