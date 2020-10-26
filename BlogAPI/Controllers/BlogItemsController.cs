@@ -38,14 +38,18 @@ namespace BlogAPI.Controllers
             {
                 string queryString = string.Format("SELECT * FROM [dbo].[BlogItem] WHERE ID = {0}", id);
 
+                string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = Requests + 1");
+
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
                 BlogItemDTO blogItemDTO = new BlogItemDTO();
 
                 using (SqlConnection connection = new SqlConnection(connString))
                 {
-                    SqlCommand command = new SqlCommand(queryString, connection);
                     connection.Open();
+
+                    SqlCommand command = new SqlCommand(queryString, connection);
+                    
                     SqlDataReader reader = await command.ExecuteReaderAsync();
 
                     if (reader.Read())
@@ -53,8 +57,14 @@ namespace BlogAPI.Controllers
                         blogItemDTO.Id = (int)reader["ID"];
                         blogItemDTO.Title = reader["Title"].ToString();
                         blogItemDTO.Content = reader["Content"].ToString();
-                        connection.Close();
+                        //blogItemDTO.DateCreated = reader["DateCreated"].ToString("dd/MMMM/yyyy");
+                        blogItemDTO.DateCreated = reader["DateCreated"].ToString();
+                        blogItemDTO.DateModified = reader["DateModified"].ToString();
                     }
+
+                    SqlCommand command1 = new SqlCommand(queryString1, connection);
+
+                    connection.Close();
                 }
 
                 return blogItemDTO;
@@ -76,6 +86,8 @@ namespace BlogAPI.Controllers
             {
                 string queryString = string.Format("SELECT * FROM [BlogItem] WHERE [ID] = (SELECT MAX(ID) FROM [BlogItem])");
 
+                string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = Requests + 1");
+
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
                 BlogItemDTO blogItemDTO = new BlogItemDTO();
@@ -91,8 +103,15 @@ namespace BlogAPI.Controllers
                         blogItemDTO.Id = (int)reader["ID"];
                         blogItemDTO.Title = reader["Title"].ToString();
                         blogItemDTO.Content = reader["Content"].ToString();
-                        connection.Close();
+                        //blogItemDTO.DateCreated = reader["DateCreated"].ToString("dd/MMMM/yyyy");
+                        blogItemDTO.DateCreated = reader["DateCreated"].ToString();
+                        blogItemDTO.DateModified = reader["DateModified"].ToString();
+
                     }
+
+                    SqlCommand command1 = new SqlCommand(queryString1, connection);
+
+                    connection.Close();
                 }
 
                 return blogItemDTO;
@@ -142,7 +161,7 @@ namespace BlogAPI.Controllers
         {
             try
             {
-                string queryString = string.Format("INSERT INTO [BlogItem] (Title, Content, Requests) VALUES ('{0}', '{1}', 0)", blogItemDTO.Title, blogItemDTO.Content);
+                string queryString = string.Format("INSERT INTO [BlogItem] (Title, Content, DateCreated) VALUES ('{0}', '{1}', GetDate())", blogItemDTO.Title, blogItemDTO.Content);
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
