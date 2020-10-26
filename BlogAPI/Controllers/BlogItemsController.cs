@@ -38,7 +38,7 @@ namespace BlogAPI.Controllers
             {
                 string queryString = string.Format("SELECT * FROM [dbo].[BlogItem] WHERE ID = {0}", id);
 
-                string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = Requests + 1");
+                string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", id);
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
@@ -57,12 +57,14 @@ namespace BlogAPI.Controllers
                         blogItemDTO.Id = (int)reader["ID"];
                         blogItemDTO.Title = reader["Title"].ToString();
                         blogItemDTO.Content = reader["Content"].ToString();
-                        //blogItemDTO.DateCreated = reader["DateCreated"].ToString("dd/MMMM/yyyy");
+                        blogItemDTO.Requests = (int)reader["Requests"];
                         blogItemDTO.DateCreated = reader["DateCreated"].ToString();
                         blogItemDTO.DateModified = reader["DateModified"].ToString();
                     }
 
                     SqlCommand command1 = new SqlCommand(queryString1, connection);
+
+                    command1.ExecuteNonQuery();
 
                     connection.Close();
                 }
@@ -87,7 +89,7 @@ namespace BlogAPI.Controllers
             {
                 string queryString = string.Format("SELECT * FROM [BlogItem] WHERE [ID] = (SELECT MAX(ID) FROM [BlogItem])");
 
-                string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = Requests + 1");
+                
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
@@ -104,13 +106,17 @@ namespace BlogAPI.Controllers
                         blogItemDTO.Id = (int)reader["ID"];
                         blogItemDTO.Title = reader["Title"].ToString();
                         blogItemDTO.Content = reader["Content"].ToString();
-                        //blogItemDTO.DateCreated = reader["DateCreated"].ToString("dd/MMMM/yyyy");
+                        blogItemDTO.Requests = (int)reader["Requests"] + 1;
                         blogItemDTO.DateCreated = reader["DateCreated"].ToString();
                         blogItemDTO.DateModified = reader["DateModified"].ToString();
 
                     }
 
+                    string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", blogItemDTO.Id);
+
                     SqlCommand command1 = new SqlCommand(queryString1, connection);
+
+                    command1.ExecuteNonQuery();
 
                     connection.Close();
                 }
