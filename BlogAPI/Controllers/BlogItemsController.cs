@@ -18,12 +18,10 @@ namespace BlogAPI.Controllers
     public class BlogItemsController : ControllerBase
     {
         private readonly IConfiguration configuration;
-        private readonly BlogItemContext blogItemContext;
 
-        public BlogItemsController(IConfiguration configuration, BlogItemContext context)
+        public BlogItemsController(IConfiguration configuration)
         {
             this.configuration = configuration;
-            blogItemContext = context;
         }
 
         /// <summary>
