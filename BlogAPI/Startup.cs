@@ -46,7 +46,7 @@ namespace BlogAPI
             }
 
             app.UseCors(
-                options => options.WithOrigins("https://localhost:44305").AllowAnyMethod()
+                options => options.WithOrigins("http:www.hux-dev.com").AllowAnyMethod()
             );
 
             app.UseDefaultFiles();
