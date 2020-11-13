@@ -34,7 +34,7 @@ namespace BlogAPI.Controllers
         {
             try
             {
-                string queryString = string.Format("SELECT * FROM [dbo].[BlogItem] WHERE ID = {0}", id);
+                string queryString = string.Format("SELECT * FROM [BlogItem] WHERE ID = {0}", id);
 
                 string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", id);
 
@@ -59,6 +59,8 @@ namespace BlogAPI.Controllers
                         blogItemDTO.DateCreated = reader["DateCreated"].ToString();
                         blogItemDTO.DateModified = reader["DateModified"].ToString();
                     }
+
+                    reader.Close();
 
                     SqlCommand command1 = new SqlCommand(queryString1, connection);
 
@@ -87,8 +89,6 @@ namespace BlogAPI.Controllers
             {
                 string queryString = string.Format("SELECT * FROM [BlogItem] WHERE [ID] = (SELECT MAX(ID) FROM [BlogItem])");
 
-                
-
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
                 BlogItemDTO blogItemDTO = new BlogItemDTO();
@@ -107,8 +107,9 @@ namespace BlogAPI.Controllers
                         blogItemDTO.Requests = (int)reader["Requests"] + 1;
                         blogItemDTO.DateCreated = reader["DateCreated"].ToString();
                         blogItemDTO.DateModified = reader["DateModified"].ToString();
-
                     }
+
+                    reader.Close();
 
                     string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", blogItemDTO.Id);
 
@@ -124,7 +125,7 @@ namespace BlogAPI.Controllers
             catch (Exception ex)
             {
                 _ = ex;
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
         }
 
