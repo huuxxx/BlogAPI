@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JWTAuthentication.Authentication
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class AuthDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        public AuthDbContext(DbContextOptions<AuthDbContext> options) : base(options)
         {
 
         }

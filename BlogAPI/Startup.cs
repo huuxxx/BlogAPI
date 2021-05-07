@@ -43,11 +43,11 @@ namespace BlogAPI
             services.AddCors();
 
             // For Entity Framework  
-            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("ConnStr")));
+            services.AddDbContext<AuthDbContext>(options => options.UseSqlServer("Server=DESKTOP-V3P1EHC;Database=BlogAPI;Trusted_Connection=True;MultipleActiveResultSets=true"));
 
             // For Identity  
             services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddEntityFrameworkStores<AuthDbContext>()
                 .AddDefaultTokenProviders();
 
             // Adding Authentication  
@@ -83,7 +83,7 @@ namespace BlogAPI
             }
 
             app.UseCors(
-                options => options.WithOrigins("http://www.hux-dev.com").AllowAnyMethod()
+                options => options.WithOrigins("http://www.hux-dev.com").AllowAnyMethod().AllowAnyHeader()
             );
 
             app.UseDefaultFiles();
