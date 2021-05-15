@@ -10,6 +10,8 @@ using BlogAPI.DTO;
 using Security.Api.Filters;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BlogAPI.Controllers
 {
@@ -82,7 +84,7 @@ namespace BlogAPI.Controllers
         /// Get latest blog
         /// </summary>
         /// <returns></returns>
-        [HttpGet("GetBlogLatest"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10)]
+        [HttpGet("GetBlogLatest")]
         public async Task<ActionResult<BlogItemDTO>> GetBlogLatest()
         {
             try
@@ -162,14 +164,18 @@ namespace BlogAPI.Controllers
         /// <summary>
         /// Create new blog
         /// </summary>
-        /// <param name="blogItemDTO"></param>
+        /// <param name="newBlogItemDTO"></param>
         /// <returns></returns>
-        [HttpPost("CreateBlog")]
-        public async Task<ActionResult<BlogItemDTO>> CreateBlog(BlogItemDTO blogItemDTO)
+        [HttpPost("CreateBlog"), Authorize]
+        public async Task<ActionResult<NewBlogItemDTO>> CreateBlog(NewBlogItemDTO newBlogItemDTO)
         {
             try
             {
-                string queryString = string.Format("INSERT INTO [BlogItem] (Title, Content, DateCreated) VALUES ('{0}', '{1}', GetDate())", blogItemDTO.Title, blogItemDTO.Content);
+                string sqlEscapeTitle = Regex.Replace(newBlogItemDTO.Title, "'", "''");
+
+                string sqlEscapeContent = Regex.Replace(newBlogItemDTO.Content, "'", "''");
+
+                string queryString = string.Format("INSERT INTO [BlogItem] (Title, Content, DateCreated) VALUES ('{0}', '{1}', GetDate())", sqlEscapeTitle, sqlEscapeContent);
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
@@ -177,9 +183,11 @@ namespace BlogAPI.Controllers
                 {
                     SqlCommand command = new SqlCommand(queryString, connection);
                     connection.Open();
+                    command.ExecuteNonQuery();
+                    connection.Close();
                 }
 
-                return blogItemDTO;
+                return Ok();
             }
             catch (Exception ex)
             {

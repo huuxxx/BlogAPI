@@ -43,7 +43,7 @@ namespace BlogAPI
             services.AddCors();
 
             // For Entity Framework  
-            services.AddDbContext<AuthDbContext>(options => options.UseSqlServer("Server=DESKTOP-V3P1EHC;Database=BlogAPI;Trusted_Connection=True;MultipleActiveResultSets=true"));
+            services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:BlogAPI"]));
 
             // For Identity  
             services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -67,8 +67,6 @@ namespace BlogAPI
                 {
                     ValidateIssuer = true,
                     ValidateAudience = true,
-                    ValidAudience = Configuration["JWT:ValidAudience"],
-                    ValidIssuer = Configuration["JWT:ValidIssuer"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT:Secret"]))
                 };
             });
@@ -83,7 +81,7 @@ namespace BlogAPI
             }
 
             app.UseCors(
-                options => options.WithOrigins("http://www.hux-dev.com").AllowAnyMethod().AllowAnyHeader()
+                options => options.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader()
             );
 
             app.UseDefaultFiles();
