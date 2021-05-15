@@ -137,7 +137,7 @@ namespace BlogAPI.Controllers
         /// <param name="id"></param>
         /// <param name="blogItemDTO"></param>
         /// <returns></returns>
-        [HttpPut("EditBlog{id}")]
+        [HttpPut("EditBlog{id}"), Authorize]
         public async Task<IActionResult> EditBlog(long id, BlogItemDTO blogItemDTO)
         {
             try
@@ -201,7 +201,7 @@ namespace BlogAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("DeleteBlog{id}")]
+        [HttpDelete("DeleteBlog{id}"), Authorize]
         public async Task<IActionResult> DeleteBlog(long id)
         {
             try

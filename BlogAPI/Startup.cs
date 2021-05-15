@@ -30,8 +30,6 @@ namespace BlogAPI
             _configuration = configuration;
         }
 
-        public IConfiguration Configuration { get; }
-
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -43,7 +41,7 @@ namespace BlogAPI
             services.AddCors();
 
             // For Entity Framework  
-            services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(Configuration["ConnectionStrings:BlogAPI"]));
+            services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(_configuration.GetConnectionString("BlogAPI")));
 
             // For Identity  
             services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -65,9 +63,9 @@ namespace BlogAPI
                 options.RequireHttpsMetadata = false;
                 options.TokenValidationParameters = new TokenValidationParameters()
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT:Secret"]))
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]))
                 };
             });
         }
@@ -91,6 +89,8 @@ namespace BlogAPI
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 
