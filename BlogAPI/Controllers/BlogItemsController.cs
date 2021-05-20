@@ -175,7 +175,7 @@ namespace BlogAPI.Controllers
 
                 string sqlEscapeContent = Regex.Replace(newBlogItemDTO.Content, "'", "''");
 
-                string queryString = string.Format("INSERT INTO [BlogItem] (Title, Content, DateCreated) VALUES ('{0}', '{1}', GetDate())", sqlEscapeTitle, sqlEscapeContent);
+                string queryString = string.Format("INSERT INTO [BlogItem] (Title, Content, DateCreated) VALUES (N'{0}', N'{1}', GetDate())", sqlEscapeTitle, sqlEscapeContent);
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
