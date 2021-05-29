@@ -12,6 +12,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Logging;
 
 namespace BlogAPI.Controllers
 {
@@ -20,10 +21,13 @@ namespace BlogAPI.Controllers
     public class BlogItemsController : ControllerBase
     {
         private readonly IConfiguration configuration;
+        private readonly ILogger<BlogItemsController> logger;
+        private string logMessage;
 
-        public BlogItemsController(IConfiguration configuration)
+        public BlogItemsController(IConfiguration configuration, ILogger<BlogItemsController> logger)
         {
             this.configuration = configuration;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -42,13 +46,13 @@ namespace BlogAPI.Controllers
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-                BlogItemDTO blogItemDTO = new BlogItemDTO();
+                BlogItemDTO blogItemDTO = new();
 
-                using (SqlConnection connection = new SqlConnection(connString))
+                using (SqlConnection connection = new(connString))
                 {
                     connection.Open();
 
-                    SqlCommand command = new SqlCommand(queryString, connection);
+                    SqlCommand command = new(queryString, connection);
                     
                     SqlDataReader reader = await command.ExecuteReaderAsync();
 
@@ -64,7 +68,7 @@ namespace BlogAPI.Controllers
 
                     reader.Close();
 
-                    SqlCommand command1 = new SqlCommand(queryString1, connection);
+                    SqlCommand command1 = new(queryString1, connection);
 
                     command1.ExecuteNonQuery();
 
@@ -75,7 +79,8 @@ namespace BlogAPI.Controllers
             }
             catch (Exception ex)
             {
-                _ = ex;
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {id} \n {ex.Message}";
+                logger.LogInformation(logMessage);
                 return BadRequest();
             }
         }
@@ -93,11 +98,11 @@ namespace BlogAPI.Controllers
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-                BlogItemDTO blogItemDTO = new BlogItemDTO();
+                BlogItemDTO blogItemDTO = new();
 
-                await using (SqlConnection connection = new SqlConnection(connString))
+                await using (SqlConnection connection = new(connString))
                 {
-                    SqlCommand command = new SqlCommand(queryString, connection);
+                    SqlCommand command = new(queryString, connection);
                     connection.Open();
                     SqlDataReader reader = await command.ExecuteReaderAsync();
 
@@ -115,7 +120,7 @@ namespace BlogAPI.Controllers
 
                     string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", blogItemDTO.Id);
 
-                    SqlCommand command1 = new SqlCommand(queryString1, connection);
+                    SqlCommand command1 = new(queryString1, connection);
 
                     command1.ExecuteNonQuery();
 
@@ -126,7 +131,8 @@ namespace BlogAPI.Controllers
             }
             catch (Exception ex)
             {
-                _ = ex;
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed \n {ex.Message}";
+                logger.LogInformation(logMessage);
                 return BadRequest(ex.Message);
             }
         }
@@ -146,9 +152,9 @@ namespace BlogAPI.Controllers
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-                await using (SqlConnection connection = new SqlConnection(connString))
+                await using (SqlConnection connection = new(connString))
                 {
-                    SqlCommand command = new SqlCommand(queryString, connection);
+                    SqlCommand command = new(queryString, connection);
                     connection.Open();
                 }
 
@@ -156,7 +162,8 @@ namespace BlogAPI.Controllers
             }
             catch (Exception ex)
             {
-                _ = ex;
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {id} \n {ex.Message}";
+                logger.LogInformation(logMessage);
                 return BadRequest();
             }
         }
@@ -181,7 +188,7 @@ namespace BlogAPI.Controllers
 
                 await using (SqlConnection connection = new SqlConnection(connString))
                 {
-                    SqlCommand command = new SqlCommand(queryString, connection);
+                    SqlCommand command = new(queryString, connection);
                     connection.Open();
                     command.ExecuteNonQuery();
                     connection.Close();
@@ -191,7 +198,8 @@ namespace BlogAPI.Controllers
             }
             catch (Exception ex)
             {
-                _ = ex;
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed \n {ex.Message}";
+                logger.LogInformation(logMessage);
                 return BadRequest();
             }
         }
@@ -210,9 +218,9 @@ namespace BlogAPI.Controllers
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-                await using (SqlConnection connection = new SqlConnection(connString))
+                await using (SqlConnection connection = new(connString))
                 {
-                    SqlCommand command = new SqlCommand(queryString, connection);
+                    SqlCommand command = new(queryString, connection);
                     connection.Open();
                 }
 
@@ -220,7 +228,8 @@ namespace BlogAPI.Controllers
             }
             catch (Exception ex)
             {
-                _ = ex;
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {id} \n {ex.Message}";
+                logger.LogInformation(logMessage);
                 return BadRequest();
             }
         }
