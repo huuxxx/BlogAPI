@@ -95,7 +95,7 @@ namespace BlogAPI.Controllers
 
                 BlogItemDTO blogItemDTO = new BlogItemDTO();
 
-                using (SqlConnection connection = new SqlConnection(connString))
+                await using (SqlConnection connection = new SqlConnection(connString))
                 {
                     SqlCommand command = new SqlCommand(queryString, connection);
                     connection.Open();
@@ -146,7 +146,7 @@ namespace BlogAPI.Controllers
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-                using (SqlConnection connection = new SqlConnection(connString))
+                await using (SqlConnection connection = new SqlConnection(connString))
                 {
                     SqlCommand command = new SqlCommand(queryString, connection);
                     connection.Open();
@@ -179,7 +179,7 @@ namespace BlogAPI.Controllers
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-                using (SqlConnection connection = new SqlConnection(connString))
+                await using (SqlConnection connection = new SqlConnection(connString))
                 {
                     SqlCommand command = new SqlCommand(queryString, connection);
                     connection.Open();
@@ -210,7 +210,7 @@ namespace BlogAPI.Controllers
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-                using (SqlConnection connection = new SqlConnection(connString))
+                await using (SqlConnection connection = new SqlConnection(connString))
                 {
                     SqlCommand command = new SqlCommand(queryString, connection);
                     connection.Open();
