@@ -16,15 +16,15 @@ using Microsoft.Extensions.Logging;
 
 namespace BlogAPI.Controllers
 {
-    [Route("api/BlogItems")]
+    [Route("api/[controller]")]
     [ApiController]
-    public class BlogItemsController : ControllerBase
+    public class BlogController : ControllerBase
     {
         private readonly IConfiguration configuration;
-        private readonly ILogger<BlogItemsController> logger;
+        private readonly ILogger<BlogController> logger;
         private string logMessage;
 
-        public BlogItemsController(IConfiguration configuration, ILogger<BlogItemsController> logger)
+        public BlogController(IConfiguration configuration, ILogger<BlogController> logger)
         {
             this.configuration = configuration;
             this.logger = logger;

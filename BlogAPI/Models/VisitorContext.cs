@@ -11,6 +11,5 @@ namespace BlogAPI.Models
         }
 
         public DbSet<VisitorItem> VisitorItem { get; set; }
-        public object VisitorItemDTO { get; internal set; }
     }
 }

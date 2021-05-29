@@ -1,5 +1,7 @@
 ﻿using BlogAPI.DTO;
+using BlogAPI.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
@@ -13,14 +15,14 @@ namespace BlogAPI.Controllers
     [ApiController]
     public class AnalyticsController : ControllerBase
     {
-        private readonly IConfiguration configuration;
         private readonly ILogger<AnalyticsController> logger;
         private string logMessage;
+        private readonly VisitorContext context;
 
-        public AnalyticsController(IConfiguration configuration, ILogger<AnalyticsController> logger)
+        public AnalyticsController(ILogger<AnalyticsController> logger, VisitorContext context)
         {
-            this.configuration = configuration;
             this.logger = logger;
+            this.context = context;
         }
 
         /// <summary>
@@ -28,12 +30,14 @@ namespace BlogAPI.Controllers
         /// </summary>
         /// <param></param>
         /// <returns></returns>
-        [HttpGet("GetAllVisits")]
-        public async Task<ActionResult<BlogItemDTO>> GetAllVisits()
+        [HttpGet("GetAnalytics")]
+        public ActionResult<AnalyticsOverview> GetAnalytics()
         {
             try
             {
-                return Ok();
+                AnalyticsOverview overview = new();
+                overview.TotalVisits = context.VisitorItem.Count();
+                return Ok(overview);
             }
             catch (Exception ex)
             {
@@ -44,15 +48,17 @@ namespace BlogAPI.Controllers
         }
 
         /// <summary>
-        /// Post new visitor info
+        /// Post site visitor info
         /// </summary>
         /// <param></param>
         /// <returns></returns>
         [HttpPost("NewVisitor")]
-        public async Task<ActionResult<VisitorItem>> NewVisitor(VisitorItem newVisitorDTO)
+        public async Task<ActionResult<VisitorItem>> NewVisitor(VisitorItem visitorItem)
         {
             try
             {
+                context.VisitorItem.Add(visitorItem);
+                await context.SaveChangesAsync();
                 return Ok();
             }
             catch (Exception ex)
