@@ -57,6 +57,7 @@ namespace BlogAPI.Controllers
         {
             try
             {
+                visitorItem.VisitorIP = HttpContext.Connection.RemoteIpAddress.ToString();
                 context.VisitorItem.Add(visitorItem);
                 await context.SaveChangesAsync();
                 return Ok();

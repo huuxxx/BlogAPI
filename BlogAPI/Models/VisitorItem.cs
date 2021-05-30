@@ -13,5 +13,6 @@ namespace BlogAPI.DTO
         public string VisitorIP { get; set; }
         public int ScreenWidth { get; set; }
         public int ScreenHeight { get; set; }
+        public DateTime DateVisited { get; set; }
     }
 }

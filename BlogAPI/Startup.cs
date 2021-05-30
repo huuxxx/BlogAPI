@@ -80,7 +80,7 @@ namespace BlogAPI
             }
 
             app.UseCors(
-                options => options.WithOrigins("http://localhost:3000").AllowAnyMethod().AllowAnyHeader()
+                options => options.WithOrigins("http://localhost:3000", "http://localhost:53150").AllowAnyMethod().AllowAnyHeader()
             );
 
             app.UseDefaultFiles();
