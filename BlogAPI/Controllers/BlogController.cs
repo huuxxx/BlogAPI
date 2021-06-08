@@ -86,6 +86,60 @@ namespace BlogAPI.Controllers
         }
 
         /// <summary>
+        /// Get all blog posts excluding content
+        /// </summary>
+        /// <param></param>
+        /// <returns></returns>
+        [HttpGet("GetAllBlogs")]
+        public async Task<ActionResult<List<BlogItemDTO>>> GetAllBlogs()
+        {
+            try
+            {
+                string queryString = "SELECT * FROM [BlogItem]";
+
+                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+
+                List<BlogItemDTO> blogItems = new();
+
+                using (SqlConnection connection = new(connString))
+                {
+                    connection.Open();
+
+                    SqlCommand command = new(queryString, connection);
+
+                    SqlDataReader reader = await command.ExecuteReaderAsync();
+
+                    if (reader.Read())
+                    {
+                        while (reader.Read())
+                        {
+                            BlogItemDTO blogItem = new();
+                            blogItem.Id = (int)reader["ID"];
+                            blogItem.Title = reader["Title"].ToString();
+                            blogItem.Content = "";
+                            blogItem.Requests = (int)reader["Requests"];
+                            blogItem.DateCreated = reader["DateCreated"].ToString();
+                            blogItem.DateModified = reader["DateModified"].ToString();
+                            blogItems.Add(blogItem);
+                        }
+                    }
+
+                    reader.Close();
+
+                    connection.Close();
+                }
+
+                return blogItems;
+            }
+            catch (Exception ex)
+            {
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed \n {ex.Message}";
+                logger.LogInformation(logMessage);
+                return BadRequest();
+            }
+        }
+
+        /// <summary>
         /// Get latest blog
         /// </summary>
         /// <returns></returns>
