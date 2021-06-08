@@ -142,9 +142,10 @@ namespace BlogAPI.Controllers
         /// <summary>
         /// Get latest blog
         /// </summary>
+        /// <param name="preventIncrement">default: false. If true it will prevent an increase to the view count of the blog</param>
         /// <returns></returns>
         [HttpGet("GetBlogLatest")]
-        public async Task<ActionResult<BlogItemDTO>> GetBlogLatest()
+        public async Task<ActionResult<BlogItemDTO>> GetBlogLatest(bool? preventIncrement = false)
         {
             try
             {
@@ -172,11 +173,14 @@ namespace BlogAPI.Controllers
 
                     reader.Close();
 
-                    string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", blogItemDTO.Id);
+                    if (preventIncrement == false)
+                    {
+                        string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", blogItemDTO.Id);
 
-                    SqlCommand command1 = new(queryString1, connection);
+                        SqlCommand command1 = new(queryString1, connection);
 
-                    command1.ExecuteNonQuery();
+                        command1.ExecuteNonQuery();
+                    }
 
                     connection.Close();
                 }
