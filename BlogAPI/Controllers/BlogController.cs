@@ -91,15 +91,15 @@ namespace BlogAPI.Controllers
         /// <param></param>
         /// <returns></returns>
         [HttpGet("GetAllBlogs")]
-        public async Task<ActionResult<List<BlogItemDTO>>> GetAllBlogs()
+        public async Task<ActionResult<List<BlogGetAllItem>>> GetAllBlogs()
         {
             try
             {
-                string queryString = "SELECT * FROM [BlogItem]";
+                string queryString = "SELECT id, title, dateCreated FROM [BlogItem]";
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-                List<BlogItemDTO> blogItems = new();
+                List<BlogGetAllItem> blogItems = new();
 
                 using (SqlConnection connection = new(connString))
                 {
@@ -113,13 +113,10 @@ namespace BlogAPI.Controllers
                     {
                         while (reader.Read())
                         {
-                            BlogItemDTO blogItem = new();
+                            BlogGetAllItem blogItem = new();
                             blogItem.Id = (int)reader["ID"];
                             blogItem.Title = reader["Title"].ToString();
-                            blogItem.Content = "";
-                            blogItem.Requests = (int)reader["Requests"];
                             blogItem.DateCreated = reader["DateCreated"].ToString();
-                            blogItem.DateModified = reader["DateModified"].ToString();
                             blogItems.Add(blogItem);
                         }
                     }
