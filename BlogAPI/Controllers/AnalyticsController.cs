@@ -1,5 +1,7 @@
 ﻿using BlogAPI.DTO;
 using BlogAPI.Models;
+using BlogAPI.Types;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -48,12 +50,12 @@ namespace BlogAPI.Controllers
         }
 
         /// <summary>
-        /// Post site visitor info
+        /// Post initial site visitor info
         /// </summary>
         /// <param></param>
-        /// <returns></returns>
+        /// <returns>Session ID</returns>
         [HttpPost("NewVisitor")]
-        public async Task<ActionResult<VisitorItem>> NewVisitor(VisitorItem visitorItem)
+        public async Task<ActionResult<int>> NewVisitor(VisitorItem visitorItem)
         {
             try
             {
@@ -65,6 +67,47 @@ namespace BlogAPI.Controllers
             catch (Exception ex)
             {
                 logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed \n {ex.Message}";
+                logger.LogInformation(logMessage);
+                return BadRequest();
+            }
+        }
+
+        /// <summary>
+        /// Post page view info
+        /// </summary>
+        /// <param></param>
+        /// <returns></returns>
+        [HttpPost("PageViewed")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> PageViewed(int sessionId, PageTypes pageViewed)
+        {
+            try
+            {
+                VisitorItem visitorItem = new();
+                context.VisitorItem.Attach(visitorItem);
+
+                switch (pageViewed)
+                {
+                    case PageTypes.Blogs:
+                        context.Entry(visitorItem).Property(x => x.ViewedBlogs).IsModified = true;
+                        break;
+                    case PageTypes.Projects:
+                        context.Entry(visitorItem).Property(x => x.ViewedProjects).IsModified = true;
+                        break;
+                    case PageTypes.About:
+                        context.Entry(visitorItem).Property(x => x.ViewedAbout).IsModified = true;
+                        break;
+                    default:
+                        return BadRequest($"Invalid Page Type {pageViewed}");
+                }
+
+                await context.SaveChangesAsync();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for session ID {sessionId} \n {ex.Message}";
                 logger.LogInformation(logMessage);
                 return BadRequest();
             }
