@@ -1,6 +1,5 @@
 ﻿using BlogAPI.DTO;
 using BlogAPI.Models;
-using BlogAPI.Types;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -62,7 +61,9 @@ namespace BlogAPI.Controllers
                 visitorItem.VisitorIP = HttpContext.Connection.RemoteIpAddress.ToString();
                 context.VisitorItem.Add(visitorItem);
                 await context.SaveChangesAsync();
-                return Ok();
+                var newVisitorItem = context.VisitorItem.OrderByDescending(x => x.Id).FirstOrDefault();
+                int newId = newVisitorItem.Id;
+                return Ok(newId);
             }
             catch (Exception ex)
             {
@@ -80,26 +81,29 @@ namespace BlogAPI.Controllers
         [HttpPost("PageViewed")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> PageViewed(int sessionId, PageTypes pageViewed)
+        public async Task<IActionResult> PageViewed(PageViewed pageViewedItem)
         {
             try
             {
-                VisitorItem visitorItem = new();
+                var visitorItem = new VisitorItem { Id = pageViewedItem.SessionId };
                 context.VisitorItem.Attach(visitorItem);
 
-                switch (pageViewed)
+                switch (pageViewedItem.PageType)
                 {
-                    case PageTypes.Blogs:
+                    case "Blogs":
+                        visitorItem.ViewedBlogs = true;
                         context.Entry(visitorItem).Property(x => x.ViewedBlogs).IsModified = true;
                         break;
-                    case PageTypes.Projects:
+                    case "Projects":
+                        visitorItem.ViewedProjects = true;
                         context.Entry(visitorItem).Property(x => x.ViewedProjects).IsModified = true;
                         break;
-                    case PageTypes.About:
+                    case "About":
+                        visitorItem.ViewedAbout = true;
                         context.Entry(visitorItem).Property(x => x.ViewedAbout).IsModified = true;
                         break;
                     default:
-                        return BadRequest($"Invalid Page Type {pageViewed}");
+                        return BadRequest($"Invalid Page Type {pageViewedItem.PageType}");
                 }
 
                 await context.SaveChangesAsync();
@@ -107,7 +111,7 @@ namespace BlogAPI.Controllers
             }
             catch (Exception ex)
             {
-                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for session ID {sessionId} \n {ex.Message}";
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for session ID {pageViewedItem.SessionId} \n {ex.Message}";
                 logger.LogInformation(logMessage);
                 return BadRequest();
             }
