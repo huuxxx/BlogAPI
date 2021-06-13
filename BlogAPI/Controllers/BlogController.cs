@@ -35,14 +35,14 @@ namespace BlogAPI.Controllers
         /// </summary>
         /// <param name="id">ID of blog item</param>
         /// <returns></returns>
-        [HttpGet("GetBlog{id}"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10)]
-        public async Task<ActionResult<BlogItemDTO>> GetBlog(long id)
+        [HttpPost("GetBlog"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10)]
+        public async Task<ActionResult<BlogItemDTO>> GetBlog(GetBlog getBlog)
         {
             try
             {
-                string queryString = string.Format("SELECT * FROM [BlogItem] WHERE ID = {0}", id);
+                string queryString = string.Format("SELECT * FROM [BlogItem] WHERE ID = {0}", getBlog.Id);
 
-                string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", id);
+                string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", getBlog.Id);
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
@@ -68,9 +68,12 @@ namespace BlogAPI.Controllers
 
                     reader.Close();
 
-                    SqlCommand command1 = new(queryString1, connection);
+                    if (getBlog.PreventIncrement == false)
+                    {
+                        SqlCommand command1 = new(queryString1, connection);
 
-                    command1.ExecuteNonQuery();
+                        command1.ExecuteNonQuery();
+                    }
 
                     connection.Close();
                 }
@@ -79,7 +82,7 @@ namespace BlogAPI.Controllers
             }
             catch (Exception ex)
             {
-                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {id} \n {ex.Message}";
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {getBlog.Id} \n {ex.Message}";
                 logger.LogInformation(logMessage);
                 return BadRequest();
             }
@@ -95,7 +98,7 @@ namespace BlogAPI.Controllers
         {
             try
             {
-                string queryString = "SELECT id, title, dateCreated FROM [BlogItem]";
+                string queryString = "SELECT id, title, dateCreated FROM [BlogItem] ORDER BY id DESC";
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
