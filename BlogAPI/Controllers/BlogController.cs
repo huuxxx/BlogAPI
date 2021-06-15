@@ -112,16 +112,18 @@ namespace BlogAPI.Controllers
 
                     SqlDataReader reader = await command.ExecuteReaderAsync();
 
-                    if (reader.Read())
+                    if (!reader.HasRows)
                     {
-                        while (reader.Read())
-                        {
-                            BlogGetAllItem blogItem = new();
-                            blogItem.Id = (int)reader["ID"];
-                            blogItem.Title = reader["Title"].ToString();
-                            blogItem.DateCreated = reader["DateCreated"].ToString();
-                            blogItems.Add(blogItem);
-                        }
+                        return Ok("No blogs found");
+                    }
+
+                    while (reader.Read())
+                    {
+                        BlogGetAllItem blogItem = new();
+                        blogItem.Id = (int)reader["ID"];
+                        blogItem.Title = reader["Title"].ToString();
+                        blogItem.DateCreated = reader["DateCreated"].ToString();
+                        blogItems.Add(blogItem);
                     }
 
                     reader.Close();
@@ -129,7 +131,7 @@ namespace BlogAPI.Controllers
                     connection.Close();
                 }
 
-                return blogItems;
+                return Ok(blogItems);
             }
             catch (Exception ex)
             {
