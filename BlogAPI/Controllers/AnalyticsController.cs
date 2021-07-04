@@ -91,13 +91,28 @@ namespace BlogAPI.Controllers
         /// <param name="numOfRecords">Number of records to request. Default: 10</param>
         /// <returns></returns>
         [HttpPost("GetLastVisits")]
-        public ActionResult<List<VisitorItem>> GetLastVisits(int numOfRecords = 10)
+        public ActionResult<List<VisitorItemConverted>> GetLastVisits(int numOfRecords = 10)
         {
             try
             {
                 var query = context.VisitorItem.OrderByDescending(x => x.Id).Take(numOfRecords);
-                List<VisitorItem> retVal = query.ToList();
-                retVal.Reverse();
+                List<VisitorItem> queryResults = query.ToList();
+                queryResults.Reverse();
+                List<VisitorItemConverted> retVal = new();
+
+                for (int i = 0; i < queryResults.Count; i++)
+                {
+                    VisitorItemConverted tempItem = new();
+                    tempItem.VisitorIP = queryResults[i].VisitorIP.ToString();
+                    tempItem.DateVisited = queryResults[i].DateVisited.ToString("dd/MM/yyyy");                    
+                    tempItem.ScreenHeight = queryResults[i].ScreenWidth.ToString();
+                    tempItem.ScreenWidth = queryResults[i].ScreenWidth.ToString();
+                    tempItem.ViewedAbout = queryResults[i].ViewedAbout.ToString();
+                    tempItem.ViewedBlogs = queryResults[i].ViewedBlogs.ToString();
+                    tempItem.ViewedProjects = queryResults[i].ViewedProjects.ToString();
+                    retVal.Add(tempItem);
+                }
+
                 return Ok(retVal);
             }
             catch (Exception ex)
