@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace BlogAPI.Controllers
 {
@@ -16,6 +17,7 @@ namespace BlogAPI.Controllers
     [ApiController]
     public class AnalyticsController : ControllerBase
     {
+        private const int DAYS_IN_WEEK = 7;
         private readonly ILogger<AnalyticsController> logger;
         private string logMessage;
         private readonly VisitorContext context;
@@ -39,6 +41,41 @@ namespace BlogAPI.Controllers
                 AnalyticsOverview overview = new();
                 overview.TotalVisits = context.VisitorItem.Count();
                 return Ok(overview);
+            }
+            catch (Exception ex)
+            {
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed \n {ex.Message}";
+                logger.LogInformation(logMessage);
+                return BadRequest();
+            }
+        }
+
+        /// <summary>
+        /// Get daily visits for the last week
+        /// </summary>
+        /// <param></param>
+        /// <returns></returns>
+        [HttpGet("GetWeekVisits")]
+        public ActionResult<AnalyticsWeekVisits[]> GetWeekVisits()
+        {
+            try
+            {
+                var retVal = new List<AnalyticsWeekVisits>();
+                var cultureInfo = new CultureInfo("en-US");
+
+                for (int i = DAYS_IN_WEEK; i > 0; i--)
+                {
+                    AnalyticsWeekVisits tempDbObj = new();
+                    tempDbObj.NameOfDay = DateTime.Now.AddDays(-(i - 1)).DayOfWeek.ToString();
+                    var dateSelector = DateTime.ParseExact(DateTime.Now.AddDays(-(i - 1)).ToString("yyyy/MM/dd"), "yyyy/MM/dd", cultureInfo);
+                    var query = from x in context.VisitorItem
+                                where x.DateVisited == dateSelector
+                                select x.DateVisited;
+                    tempDbObj.VisitsInDay = query.Count();
+                    retVal.Add(tempDbObj);
+                }
+
+                return Ok(retVal);
             }
             catch (Exception ex)
             {
