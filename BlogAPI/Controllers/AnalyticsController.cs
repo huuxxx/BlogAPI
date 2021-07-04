@@ -86,6 +86,29 @@ namespace BlogAPI.Controllers
         }
 
         /// <summary>
+        /// Return last x number of visits
+        /// </summary>
+        /// <param name="numOfRecords">Number of records to request. Default: 10</param>
+        /// <returns></returns>
+        [HttpPost("GetLastVisits")]
+        public ActionResult<List<VisitorItem>> GetLastVisits(int numOfRecords = 10)
+        {
+            try
+            {
+                var query = context.VisitorItem.OrderByDescending(x => x.Id).Take(numOfRecords);
+                List<VisitorItem> retVal = query.ToList();
+                retVal.Reverse();
+                return Ok(retVal);
+            }
+            catch (Exception ex)
+            {
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed \n {ex.Message}";
+                logger.LogInformation(logMessage);
+                return BadRequest();
+            }
+        }
+
+        /// <summary>
         /// Post initial site visitor info
         /// </summary>
         /// <param></param>
