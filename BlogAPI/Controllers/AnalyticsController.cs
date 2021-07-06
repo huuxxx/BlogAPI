@@ -105,7 +105,7 @@ namespace BlogAPI.Controllers
                     VisitorItemConverted tempItem = new();
                     tempItem.VisitorIP = queryResults[i].VisitorIP.ToString();
                     tempItem.DateVisited = queryResults[i].DateVisited.ToString("dd/MM/yyyy");                    
-                    tempItem.ScreenHeight = queryResults[i].ScreenWidth.ToString();
+                    tempItem.ScreenHeight = queryResults[i].ScreenHeight.ToString();
                     tempItem.ScreenWidth = queryResults[i].ScreenWidth.ToString();
                     tempItem.ViewedAbout = queryResults[i].ViewedAbout.ToString();
                     tempItem.ViewedBlogs = queryResults[i].ViewedBlogs.ToString();
