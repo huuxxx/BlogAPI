@@ -18,6 +18,7 @@ namespace BlogAPI.Controllers
     public class AnalyticsController : ControllerBase
     {
         private const int DAYS_IN_WEEK = 7;
+        private const string ASCII_TICK = "\u2713";
         private readonly ILogger<AnalyticsController> logger;
         private string logMessage;
         private readonly VisitorContext context;
@@ -107,9 +108,9 @@ namespace BlogAPI.Controllers
                     tempItem.DateVisited = queryResults[i].DateVisited.ToString("dd/MM/yyyy");                    
                     tempItem.ScreenHeight = queryResults[i].ScreenHeight.ToString();
                     tempItem.ScreenWidth = queryResults[i].ScreenWidth.ToString();
-                    tempItem.ViewedAbout = queryResults[i].ViewedAbout.ToString();
-                    tempItem.ViewedBlogs = queryResults[i].ViewedBlogs.ToString();
-                    tempItem.ViewedProjects = queryResults[i].ViewedProjects.ToString();
+                    tempItem.ViewedAbout = queryResults[i].ViewedAbout ? ASCII_TICK : "";
+                    tempItem.ViewedBlogs = queryResults[i].ViewedBlogs ? ASCII_TICK : "";
+                    tempItem.ViewedProjects = queryResults[i].ViewedProjects ? ASCII_TICK : "";
                     retVal.Add(tempItem);
                 }
 
