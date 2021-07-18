@@ -197,7 +197,8 @@ namespace BlogAPI.Controllers
         {
             try
             {
-                string queryString = string.Format("UPDATE [BlogItem] SET Title = '{0}', Content = '{1}', DateModified = '{2}' WHERE ID = {3}", editBlog.title, editBlog.content, DateTime.Now.ToString("yyyy/MM/dd"), editBlog.id);
+                string date = DateTime.Now.ToString("yyyy/MM/dd");
+                string queryString = string.Format("UPDATE [BlogItem] SET Title = '{0}', Content = '{1}', DateModified = '{2}' WHERE ID = {3}", editBlog.title, editBlog.content, date, editBlog.id);
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
                 await using (SqlConnection connection = new(connString))
