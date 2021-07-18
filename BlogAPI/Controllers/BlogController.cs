@@ -33,7 +33,6 @@ namespace BlogAPI.Controllers
         /// <summary>
         /// Get specific blog post by ID
         /// </summary>
-        /// <param name="id">ID of blog item</param>
         /// <returns></returns>
         [HttpPost("GetBlog"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10)]
         public async Task<ActionResult<BlogItemDTO>> GetBlog(GetBlog getBlog)
@@ -71,7 +70,6 @@ namespace BlogAPI.Controllers
                     if (getBlog.PreventIncrement == false)
                     {
                         SqlCommand command1 = new(queryString1, connection);
-
                         command1.ExecuteNonQuery();
                     }
 
@@ -107,9 +105,7 @@ namespace BlogAPI.Controllers
                 using (SqlConnection connection = new(connString))
                 {
                     connection.Open();
-
                     SqlCommand command = new(queryString, connection);
-
                     SqlDataReader reader = await command.ExecuteReaderAsync();
 
                     if (!reader.HasRows)
@@ -127,7 +123,6 @@ namespace BlogAPI.Controllers
                     }
 
                     reader.Close();
-
                     connection.Close();
                 }
 
@@ -152,9 +147,7 @@ namespace BlogAPI.Controllers
             try
             {
                 string queryString = string.Format("SELECT * FROM [BlogItem] WHERE [ID] = (SELECT MAX(ID) FROM [BlogItem])");
-
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
-
                 BlogItemDTO blogItemDTO = new();
 
                 await using (SqlConnection connection = new(connString))
@@ -178,9 +171,7 @@ namespace BlogAPI.Controllers
                     if (preventIncrement == false)
                     {
                         string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", blogItemDTO.Id);
-
                         SqlCommand command1 = new(queryString1, connection);
-
                         command1.ExecuteNonQuery();
                     }
 
@@ -200,29 +191,28 @@ namespace BlogAPI.Controllers
         /// <summary>
         /// Edit existing blog post
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="blogItemDTO"></param>
         /// <returns></returns>
-        [HttpPut("EditBlog{id}"), Authorize]
-        public async Task<IActionResult> EditBlog(long id, BlogItemDTO blogItemDTO)
+        [HttpPost("EditBlog"), Authorize]
+        public async Task<IActionResult> EditBlog(EditBlog editBlog)
         {
             try
             {
-                string queryString = string.Format("UPDATE [BlogItem] SET Title = '{0}', Content = '{1}' WHERE ID = {2}", blogItemDTO.Title, blogItemDTO.Content, id);
-
+                string queryString = string.Format("UPDATE [BlogItem] SET Title = '{0}', Content = '{1}', DateModified = '{2}' WHERE ID = {3}", editBlog.title, editBlog.content, DateTime.Now.ToString("yyyy/MM/dd"), editBlog.id);
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
                 await using (SqlConnection connection = new(connString))
                 {
                     SqlCommand command = new(queryString, connection);
                     connection.Open();
+                    command.ExecuteNonQuery();
+                    connection.Close();
                 }
 
                 return Ok();
             }
             catch (Exception ex)
             {
-                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {id} \n {ex.Message}";
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {editBlog.id} \n {ex.Message}";
                 logger.LogInformation(logMessage);
                 return BadRequest();
             }
@@ -239,11 +229,8 @@ namespace BlogAPI.Controllers
             try
             {
                 string sqlEscapeTitle = Regex.Replace(newBlogItemDTO.Title, "'", "''");
-
                 string sqlEscapeContent = Regex.Replace(newBlogItemDTO.Content, "'", "''");
-
                 string queryString = string.Format("INSERT INTO [BlogItem] (Title, Content, DateCreated) VALUES (N'{0}', N'{1}', GetDate())", sqlEscapeTitle, sqlEscapeContent);
-
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
                 await using (SqlConnection connection = new SqlConnection(connString))
@@ -269,26 +256,27 @@ namespace BlogAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("DeleteBlog{id}"), Authorize]
-        public async Task<IActionResult> DeleteBlog(long id)
+        [HttpPost("DeleteBlog"), Authorize]
+        public async Task<IActionResult> DeleteBlog(DeleteBlog deleteBlog)
         {
             try
             {
-                string queryString = string.Format("DELETE FROM [BlogItem] WHERE ID = {0}", id);
-
+                string queryString = string.Format("DELETE FROM [BlogItem] WHERE ID = {0}", deleteBlog.id);
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
                 await using (SqlConnection connection = new(connString))
                 {
                     SqlCommand command = new(queryString, connection);
                     connection.Open();
+                    command.ExecuteNonQuery();
+                    connection.Close();
                 }
 
                 return Ok();
             }
             catch (Exception ex)
             {
-                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {id} \n {ex.Message}";
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {deleteBlog.id} \n {ex.Message}";
                 logger.LogInformation(logMessage);
                 return BadRequest();
             }
