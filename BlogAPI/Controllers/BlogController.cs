@@ -198,7 +198,9 @@ namespace BlogAPI.Controllers
             try
             {
                 string date = DateTime.Now.ToString("yyyy/MM/dd");
-                string queryString = string.Format("UPDATE [BlogItem] SET Title = '{0}', Content = '{1}', DateModified = '{2}' WHERE ID = {3}", editBlog.title, editBlog.content, date, editBlog.id);
+                string sqlEscapeTitle = Regex.Replace(editBlog.title, "'", "''");
+                string sqlEscapeContent = Regex.Replace(editBlog.content, "'", "''");
+                string queryString = string.Format("UPDATE [BlogItem] SET Title = N'{0}', Content = N'{1}', DateModified = '{2}' WHERE ID = {3}", sqlEscapeTitle, sqlEscapeContent, date, editBlog.id);
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
                 await using (SqlConnection connection = new(connString))
@@ -229,9 +231,10 @@ namespace BlogAPI.Controllers
         {
             try
             {
+                string date = DateTime.Now.ToString("yyyy/MM/dd");
                 string sqlEscapeTitle = Regex.Replace(newBlogItemDTO.Title, "'", "''");
                 string sqlEscapeContent = Regex.Replace(newBlogItemDTO.Content, "'", "''");
-                string queryString = string.Format("INSERT INTO [BlogItem] (Title, Content, DateCreated) VALUES (N'{0}', N'{1}', GetDate())", sqlEscapeTitle, sqlEscapeContent);
+                string queryString = string.Format("INSERT INTO [BlogItem] (Title, Content, DateCreated) VALUES (N'{0}', N'{1}', {2}", sqlEscapeTitle, sqlEscapeContent, date);
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
                 await using (SqlConnection connection = new SqlConnection(connString))
