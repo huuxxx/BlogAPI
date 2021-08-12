@@ -300,7 +300,8 @@ namespace BlogAPI.Controllers
                 string timeStamp = DateTime.Now.ToString("yyyyMMddHHmmssffff");
 #if DEBUG
                 string path = Path.Combine(@"C:\Users\User\source\repos\BlogAPI\BlogAPI\wwwroot\Images\" + timeStamp + Path.GetExtension(file.FileName));
-#elif RELEASE
+#endif
+#if RELEASE
                 string path = Path.Combine("https://blogapi.huxdev.com/Images/" + timeStamp + Path.GetExtension(file.FileName));
 #endif
                 using (var stream = new FileStream(path, FileMode.Create))
