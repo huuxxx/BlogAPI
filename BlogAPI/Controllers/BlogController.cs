@@ -13,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
+using System.IO;
+using Microsoft.AspNetCore.Hosting;
 
 namespace BlogAPI.Controllers
 {
@@ -231,10 +233,9 @@ namespace BlogAPI.Controllers
         {
             try
             {
-                string date = DateTime.Now.ToString("yyyy/MM/dd");
                 string sqlEscapeTitle = Regex.Replace(newBlogItemDTO.Title, "'", "''");
                 string sqlEscapeContent = Regex.Replace(newBlogItemDTO.Content, "'", "''");
-                string queryString = string.Format("INSERT INTO [BlogItem] (Title, Content, DateCreated) VALUES (N'{0}', N'{1}', {2}", sqlEscapeTitle, sqlEscapeContent, date);
+                string queryString = string.Format("INSERT INTO [BlogItem] (Title, Content, DateCreated) VALUES (N'{0}', N'{1}', GetDate())", sqlEscapeTitle, sqlEscapeContent);
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
                 await using (SqlConnection connection = new SqlConnection(connString))
@@ -281,6 +282,36 @@ namespace BlogAPI.Controllers
             catch (Exception ex)
             {
                 logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {deleteBlog.id} \n {ex.Message}";
+                logger.LogInformation(logMessage);
+                return BadRequest();
+            }
+        }
+
+        /// <summary>
+        /// Upload an image to the server
+        /// </summary>
+        /// <param name="file">Image to be uploaded</param>
+        /// <returns>URL path of uploaded image</returns>
+        [HttpPost("UploadImage")]
+        public async Task<ActionResult<string>> UploadImage([FromForm]IFormFile file)
+        {
+            try
+            {
+                string timeStamp = DateTime.Now.ToString("yyyyMMddHHmmssffff");
+#if DEBUG
+                string path = Path.Combine(@"C:\Users\User\source\repos\BlogAPI\BlogAPI\wwwroot\Images\" + timeStamp + Path.GetExtension(file.FileName));
+#elif RELEASE
+                string path = Path.Combine("https://blogapi.huxdev.com/Images/" + timeStamp + Path.GetExtension(file.FileName));
+#endif
+                using (var stream = new FileStream(path, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+                return path;
+            }
+            catch (Exception ex)
+            {
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed to upload image: {file.FileName} \n {ex.Message}";
                 logger.LogInformation(logMessage);
                 return BadRequest();
             }
