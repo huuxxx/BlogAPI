@@ -298,12 +298,7 @@ namespace BlogAPI.Controllers
             try
             {
                 string timeStamp = DateTime.Now.ToString("yyyyMMddHHmmssffff");
-#if DEBUG
-                string path = Path.Combine(@"C:\Users\User\source\repos\BlogAPI\BlogAPI\wwwroot\Images\" + timeStamp + Path.GetExtension(file.FileName));
-#endif
-#if RELEASE
-                string path = Path.Combine("https://blogapi.huxdev.com/Images/" + timeStamp + Path.GetExtension(file.FileName));
-#endif
+                string path = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\Images\" + timeStamp + Path.GetExtension(file.FileName));
                 using (var stream = new FileStream(path, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
