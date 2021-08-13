@@ -79,8 +79,15 @@ namespace BlogAPI
                 app.UseDeveloperExceptionPage();
             }
 
+#if DEBUG
             app.UseCors(
                 options => options.WithOrigins("http://localhost:3000", "http://localhost:53150").AllowAnyMethod().AllowAnyHeader()
+#endif
+#if RELEASE
+            app.UseCors(
+	            options => options.WithOrigins("https://www.hux-dev.com", "https://blog-cms-weld.vercel.app").AllowAnyMethod().AllowAnyHeader()
+            );
+#endif
             );
 
             app.UseDefaultFiles();
