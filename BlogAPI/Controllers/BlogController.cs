@@ -303,7 +303,12 @@ namespace BlogAPI.Controllers
                 {
                     await file.CopyToAsync(stream);
                 }
+#if RELEASE
+                return "https://blogapi.huxdev.com/Images/" + timeStamp + Path.GetExtension(file.FileName);
+#endif
+#if DEBUG
                 return path;
+#endif
             }
             catch (Exception ex)
             {
