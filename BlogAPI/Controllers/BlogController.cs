@@ -39,7 +39,7 @@ namespace BlogAPI.Controllers
             try
             {
                 // Select n'th blog
-                string queryString = string.Format("SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY DateCreated DESC) AS row_num ,ID, Title, Content, Requests, DateCreated, DateModified FROM [dbo].[BlogItem]) AS sub WHERE row_num = {0}", getBlog.Id);
+                string queryString = string.Format("SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY DateCreated DESC) AS row_num ,ID, Title, Content, Requests, DateCreated, DateModified FROM [BlogItem]) AS sub WHERE row_num = {0}", getBlog.Id);
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
@@ -146,7 +146,7 @@ namespace BlogAPI.Controllers
         {
             try
             {
-                string queryString = string.Format("SELECT TOP 1 * FROM [dbo].[BlogItem] ORDER BY [DateCreated] DESC");
+                string queryString = string.Format("SELECT TOP 1 * FROM [BlogItem] ORDER BY [DateCreated] DESC");
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
                 BlogItemDTO blogItemDTO = new();
 
