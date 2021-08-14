@@ -1,20 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using BlogAPI.Models;
 using BlogAPI.DTO;
-using Security.Api.Filters;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using System.IO;
-using Microsoft.AspNetCore.Hosting;
 
 namespace BlogAPI.Controllers
 {
@@ -33,17 +29,17 @@ namespace BlogAPI.Controllers
         }
 
         /// <summary>
-        /// Get specific blog post by ID
+        /// Get specific blog post by n'th value in descending order of date
+        /// (1 = newest blog)
         /// </summary>
-        /// <returns></returns>
-        [HttpPost("GetBlog"), RequestLimit("Test-Action", NoOfRequest = 5, Seconds = 10)]
+        /// <returns>Blog item</returns>
+        [HttpPost("GetBlog")]
         public async Task<ActionResult<BlogItemDTO>> GetBlog(GetBlog getBlog)
         {
             try
             {
-                string queryString = string.Format("SELECT * FROM [BlogItem] WHERE ID = {0}", getBlog.Id);
-
-                string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", getBlog.Id);
+                // Select n'th blog
+                string queryString = string.Format("SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY DateCreated DESC) AS row_num ,ID, Title, Content, Requests, DateCreated, DateModified FROM [dbo].[BlogItem]) AS sub WHERE row_num = {0}", getBlog.Id);
 
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
@@ -69,6 +65,9 @@ namespace BlogAPI.Controllers
 
                     reader.Close();
 
+                    // Update blog request count
+                    string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", blogItemDTO.Id);
+
                     if (getBlog.PreventIncrement == false)
                     {
                         SqlCommand command1 = new(queryString1, connection);
@@ -91,8 +90,7 @@ namespace BlogAPI.Controllers
         /// <summary>
         /// Get all blog posts excluding content
         /// </summary>
-        /// <param></param>
-        /// <returns></returns>
+        /// <returns>Blog - ID(s), Title(s), Date(s)</returns>
         [HttpGet("GetAllBlogs")]
         public async Task<ActionResult<List<BlogGetAllItem>>> GetAllBlogs()
         {
@@ -142,13 +140,13 @@ namespace BlogAPI.Controllers
         /// Get latest blog
         /// </summary>
         /// <param name="preventIncrement">default: false. If true it will prevent an increase to the view count of the blog</param>
-        /// <returns></returns>
+        /// <returns>Blog item</returns>
         [HttpGet("GetBlogLatest")]
         public async Task<ActionResult<BlogItemDTO>> GetBlogLatest(bool? preventIncrement = false)
         {
             try
             {
-                string queryString = string.Format("SELECT * FROM [BlogItem] WHERE [ID] = (SELECT MAX(ID) FROM [BlogItem])");
+                string queryString = string.Format("SELECT TOP 1 * FROM [dbo].[BlogItem] ORDER BY [DateCreated] DESC");
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
                 BlogItemDTO blogItemDTO = new();
 
@@ -191,9 +189,39 @@ namespace BlogAPI.Controllers
         }
 
         /// <summary>
+        /// Get total number of blogs
+        /// </summary>
+        /// <returns>Blog count</returns>
+        [HttpGet("GetBlogCount")]
+        public async Task<ActionResult<int>> GetBlogCount()
+        {
+            try
+            {
+                string queryString = string.Format("SELECT COUNT(*) FROM [dbo].[BlogItem]");
+                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+                int blogCount;
+
+                await using (SqlConnection connection = new(connString))
+                {
+                    SqlCommand command = new(queryString, connection);
+                    connection.Open();
+                    blogCount = (int)command.ExecuteScalar();
+                }
+
+                return blogCount;
+            }
+            catch (Exception ex)
+            {
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed \n {ex.Message}";
+                logger.LogInformation(logMessage);
+                return BadRequest(ex.Message);
+            }
+        }
+
+        /// <summary>
         /// Edit existing blog post
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Query result</returns>
         [HttpPost("EditBlog"), Authorize]
         public async Task<IActionResult> EditBlog(EditBlog editBlog)
         {
@@ -226,8 +254,8 @@ namespace BlogAPI.Controllers
         /// <summary>
         /// Create new blog
         /// </summary>
-        /// <param name="newBlogItemDTO"></param>
-        /// <returns></returns>
+        /// <param name="newBlogItemDTO">New blog item</param>
+        /// <returns>Query result</returns>
         [HttpPost("CreateBlog"), Authorize]
         public async Task<ActionResult<NewBlogItemDTO>> CreateBlog(NewBlogItemDTO newBlogItemDTO)
         {
@@ -259,8 +287,7 @@ namespace BlogAPI.Controllers
         /// <summary>
         /// Delete existing blog
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <returns>Query Result</returns>
         [HttpPost("DeleteBlog"), Authorize]
         public async Task<IActionResult> DeleteBlog(DeleteBlog deleteBlog)
         {
@@ -291,7 +318,7 @@ namespace BlogAPI.Controllers
         /// Upload an image to the server
         /// </summary>
         /// <param name="file">Image to be uploaded</param>
-        /// <returns>URL path of uploaded image</returns>
+        /// <returns>String URL path of uploaded image</returns>
         [HttpPost("UploadImage")]
         public async Task<ActionResult<string>> UploadImage([FromForm]IFormFile file)
         {
@@ -307,7 +334,7 @@ namespace BlogAPI.Controllers
                 return "https://blogapi.huxdev.com/Images/" + timeStamp + Path.GetExtension(file.FileName);
 #endif
 #if DEBUG
-                return path;
+                return "https://blogapi.huxdev.com/Images/TrapMoneyBrycey.jpg"; // This is an img sitting on the server for testing locally
 #endif
             }
             catch (Exception ex)
