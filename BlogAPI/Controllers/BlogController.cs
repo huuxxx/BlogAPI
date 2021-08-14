@@ -206,6 +206,7 @@ namespace BlogAPI.Controllers
                     SqlCommand command = new(queryString, connection);
                     connection.Open();
                     blogCount = (int)command.ExecuteScalar();
+                    connection.Close();
                 }
 
                 return blogCount;
