@@ -88,6 +88,62 @@ namespace BlogAPI.Controllers
         }
 
         /// <summary>
+        /// Get specific blog post by ID
+        /// </summary>
+        /// <returns>Blog item</returns>
+        [HttpPost("GetBlogId")]
+        public async Task<ActionResult<BlogItemDTO>> GetBlogId(GetBlog getBlog)
+        {
+            try
+            {
+                string queryString = string.Format("SELECT * FROM [BlogItem] WHERE ID = {0}", getBlog.Id);
+
+                string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", getBlog.Id);
+
+                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+
+                BlogItemDTO blogItemDTO = new();
+
+                using (SqlConnection connection = new(connString))
+                {
+                    connection.Open();
+
+                    SqlCommand command = new(queryString, connection);
+
+                    SqlDataReader reader = await command.ExecuteReaderAsync();
+
+                    if (reader.Read())
+                    {
+                        blogItemDTO.Id = (int)reader["ID"];
+                        blogItemDTO.Title = reader["Title"].ToString();
+                        blogItemDTO.Content = reader["Content"].ToString();
+                        blogItemDTO.Requests = (int)reader["Requests"];
+                        blogItemDTO.DateCreated = reader["DateCreated"].ToString();
+                        blogItemDTO.DateModified = reader["DateModified"].ToString();
+                    }
+
+                    reader.Close();
+
+                    if (getBlog.PreventIncrement == false)
+                    {
+                        SqlCommand command1 = new(queryString1, connection);
+                        command1.ExecuteNonQuery();
+                    }
+
+                    connection.Close();
+                }
+
+                return blogItemDTO;
+            }
+            catch (Exception ex)
+            {
+                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {getBlog.Id} \n {ex.Message}";
+                logger.LogInformation(logMessage);
+                return BadRequest();
+            }
+        }
+
+        /// <summary>
         /// Get all blog posts excluding content
         /// </summary>
         /// <returns>Blog - ID(s), Title(s), Date(s)</returns>
