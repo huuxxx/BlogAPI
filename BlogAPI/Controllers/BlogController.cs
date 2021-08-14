@@ -197,7 +197,7 @@ namespace BlogAPI.Controllers
         {
             try
             {
-                string queryString = string.Format("SELECT COUNT(*) FROM [dbo].[BlogItem]");
+                string queryString = string.Format("SELECT COUNT(*) FROM [BlogItem]");
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
                 int blogCount;
 
