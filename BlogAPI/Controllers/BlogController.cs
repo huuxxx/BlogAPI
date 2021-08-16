@@ -304,7 +304,7 @@ namespace BlogAPI.Controllers
         public async Task<ActionResult<string>> UploadImage([FromForm] IFormFile file)
         {
             string timeStamp = DateTime.Now.ToString("yyyyMMddHHmmssffff");
-            string path = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\Images\Asd" + timeStamp + Path.GetExtension(file.FileName));
+            string path = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\Images\" + timeStamp + Path.GetExtension(file.FileName));
             using (var stream = new FileStream(path, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
