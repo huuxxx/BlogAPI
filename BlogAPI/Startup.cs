@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using BlogAPI.Models;
 using BlogAPI.Authentication;
@@ -18,6 +11,7 @@ using JWTAuthentication.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using BlogAPI.Middleware;
 
 namespace BlogAPI
 {
@@ -30,12 +24,13 @@ namespace BlogAPI
             _configuration = configuration;
         }
 
-
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<BlogItemContext>(options => options.UseSqlServer(_configuration.GetConnectionString("BlogAPI")));
 
             services.AddDbContext<VisitorContext>(options => options.UseSqlServer(_configuration.GetConnectionString("BlogAPI")));
+
+            services.AddDbContext<ErrorContext>(options => options.UseSqlServer(_configuration.GetConnectionString("BlogAPI")));
 
             services.AddControllers();
 
@@ -71,7 +66,6 @@ namespace BlogAPI
             });
         }
 
-
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -94,6 +88,8 @@ namespace BlogAPI
             app.UseAuthentication();
 
             app.UseAuthorization();
+
+            app.UseMiddleware<ErrorHandlerMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {

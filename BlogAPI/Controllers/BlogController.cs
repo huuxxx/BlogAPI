@@ -9,7 +9,6 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Logging;
 using System.IO;
 
 namespace BlogAPI.Controllers
@@ -19,13 +18,10 @@ namespace BlogAPI.Controllers
     public class BlogController : ControllerBase
     {
         private readonly IConfiguration configuration;
-        private readonly ILogger<BlogController> logger;
-        private string logMessage;
 
-        public BlogController(IConfiguration configuration, ILogger<BlogController> logger)
+        public BlogController(IConfiguration configuration)
         {
             this.configuration = configuration;
-            this.logger = logger;
         }
 
         /// <summary>
@@ -36,55 +32,46 @@ namespace BlogAPI.Controllers
         [HttpPost("GetBlog")]
         public async Task<ActionResult<BlogItemDTO>> GetBlog(GetBlog getBlog)
         {
-            try
+            // Select n'th blog
+            string queryString = string.Format("SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY DateCreated DESC) AS row_num ,ID, Title, Content, Requests, DateCreated, DateModified FROM [BlogItem]) AS sub WHERE row_num = {0}", getBlog.Id);
+
+            string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+
+            BlogItemDTO blogItemDTO = new();
+
+            using (SqlConnection connection = new(connString))
             {
-                // Select n'th blog
-                string queryString = string.Format("SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY DateCreated DESC) AS row_num ,ID, Title, Content, Requests, DateCreated, DateModified FROM [BlogItem]) AS sub WHERE row_num = {0}", getBlog.Id);
+                connection.Open();
 
-                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+                SqlCommand command = new(queryString, connection);
 
-                BlogItemDTO blogItemDTO = new();
+                SqlDataReader reader = await command.ExecuteReaderAsync();
 
-                using (SqlConnection connection = new(connString))
+                if (reader.Read())
                 {
-                    connection.Open();
-
-                    SqlCommand command = new(queryString, connection);
-                    
-                    SqlDataReader reader = await command.ExecuteReaderAsync();
-
-                    if (reader.Read())
-                    {
-                        blogItemDTO.Id = (int)reader["ID"];
-                        blogItemDTO.Title = reader["Title"].ToString();
-                        blogItemDTO.Content = reader["Content"].ToString();
-                        blogItemDTO.Requests = (int)reader["Requests"];
-                        blogItemDTO.DateCreated = reader["DateCreated"].ToString();
-                        blogItemDTO.DateModified = reader["DateModified"].ToString();
-                    }
-
-                    reader.Close();
-
-                    // Update blog request count
-                    string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", blogItemDTO.Id);
-
-                    if (getBlog.PreventIncrement == false)
-                    {
-                        SqlCommand command1 = new(queryString1, connection);
-                        command1.ExecuteNonQuery();
-                    }
-
-                    connection.Close();
+                    blogItemDTO.Id = (int)reader["ID"];
+                    blogItemDTO.Title = reader["Title"].ToString();
+                    blogItemDTO.Content = reader["Content"].ToString();
+                    blogItemDTO.Requests = (int)reader["Requests"];
+                    blogItemDTO.DateCreated = reader["DateCreated"].ToString();
+                    blogItemDTO.DateModified = reader["DateModified"].ToString();
                 }
 
-                return blogItemDTO;
+                reader.Close();
+
+                // Update blog request count
+                string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", blogItemDTO.Id);
+
+                if (getBlog.PreventIncrement == false)
+                {
+                    SqlCommand command1 = new(queryString1, connection);
+                    command1.ExecuteNonQuery();
+                }
+
+                connection.Close();
             }
-            catch (Exception ex)
-            {
-                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {getBlog.Id} \n {ex.Message}";
-                logger.LogInformation(logMessage);
-                return BadRequest();
-            }
+
+            return blogItemDTO;
         }
 
         /// <summary>
@@ -94,53 +81,44 @@ namespace BlogAPI.Controllers
         [HttpPost("GetBlogId")]
         public async Task<ActionResult<BlogItemDTO>> GetBlogId(GetBlog getBlog)
         {
-            try
+            string queryString = string.Format("SELECT * FROM [BlogItem] WHERE ID = {0}", getBlog.Id);
+
+            string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", getBlog.Id);
+
+            string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+
+            BlogItemDTO blogItemDTO = new();
+
+            using (SqlConnection connection = new(connString))
             {
-                string queryString = string.Format("SELECT * FROM [BlogItem] WHERE ID = {0}", getBlog.Id);
+                connection.Open();
 
-                string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", getBlog.Id);
+                SqlCommand command = new(queryString, connection);
 
-                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+                SqlDataReader reader = await command.ExecuteReaderAsync();
 
-                BlogItemDTO blogItemDTO = new();
-
-                using (SqlConnection connection = new(connString))
+                if (reader.Read())
                 {
-                    connection.Open();
-
-                    SqlCommand command = new(queryString, connection);
-
-                    SqlDataReader reader = await command.ExecuteReaderAsync();
-
-                    if (reader.Read())
-                    {
-                        blogItemDTO.Id = (int)reader["ID"];
-                        blogItemDTO.Title = reader["Title"].ToString();
-                        blogItemDTO.Content = reader["Content"].ToString();
-                        blogItemDTO.Requests = (int)reader["Requests"];
-                        blogItemDTO.DateCreated = reader["DateCreated"].ToString();
-                        blogItemDTO.DateModified = reader["DateModified"].ToString();
-                    }
-
-                    reader.Close();
-
-                    if (getBlog.PreventIncrement == false)
-                    {
-                        SqlCommand command1 = new(queryString1, connection);
-                        command1.ExecuteNonQuery();
-                    }
-
-                    connection.Close();
+                    blogItemDTO.Id = (int)reader["ID"];
+                    blogItemDTO.Title = reader["Title"].ToString();
+                    blogItemDTO.Content = reader["Content"].ToString();
+                    blogItemDTO.Requests = (int)reader["Requests"];
+                    blogItemDTO.DateCreated = reader["DateCreated"].ToString();
+                    blogItemDTO.DateModified = reader["DateModified"].ToString();
                 }
 
-                return blogItemDTO;
+                reader.Close();
+
+                if (getBlog.PreventIncrement == false)
+                {
+                    SqlCommand command1 = new(queryString1, connection);
+                    command1.ExecuteNonQuery();
+                }
+
+                connection.Close();
             }
-            catch (Exception ex)
-            {
-                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {getBlog.Id} \n {ex.Message}";
-                logger.LogInformation(logMessage);
-                return BadRequest();
-            }
+
+            return blogItemDTO;
         }
 
         /// <summary>
@@ -150,46 +128,37 @@ namespace BlogAPI.Controllers
         [HttpGet("GetAllBlogs")]
         public async Task<ActionResult<List<BlogGetAllItem>>> GetAllBlogs()
         {
-            try
+            string queryString = "SELECT id, title, dateCreated FROM [BlogItem] ORDER BY id DESC";
+
+            string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+
+            List<BlogGetAllItem> blogItems = new();
+
+            using (SqlConnection connection = new(connString))
             {
-                string queryString = "SELECT id, title, dateCreated FROM [BlogItem] ORDER BY id DESC";
+                connection.Open();
+                SqlCommand command = new(queryString, connection);
+                SqlDataReader reader = await command.ExecuteReaderAsync();
 
-                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
-
-                List<BlogGetAllItem> blogItems = new();
-
-                using (SqlConnection connection = new(connString))
+                if (!reader.HasRows)
                 {
-                    connection.Open();
-                    SqlCommand command = new(queryString, connection);
-                    SqlDataReader reader = await command.ExecuteReaderAsync();
-
-                    if (!reader.HasRows)
-                    {
-                        return Ok("No blogs found");
-                    }
-
-                    while (reader.Read())
-                    {
-                        BlogGetAllItem blogItem = new();
-                        blogItem.Id = (int)reader["ID"];
-                        blogItem.Title = reader["Title"].ToString();
-                        blogItem.DateCreated = reader["DateCreated"].ToString();
-                        blogItems.Add(blogItem);
-                    }
-
-                    reader.Close();
-                    connection.Close();
+                    return Ok("No blogs found");
                 }
 
-                return Ok(blogItems);
+                while (reader.Read())
+                {
+                    BlogGetAllItem blogItem = new();
+                    blogItem.Id = (int)reader["ID"];
+                    blogItem.Title = reader["Title"].ToString();
+                    blogItem.DateCreated = reader["DateCreated"].ToString();
+                    blogItems.Add(blogItem);
+                }
+
+                reader.Close();
+                connection.Close();
             }
-            catch (Exception ex)
-            {
-                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed \n {ex.Message}";
-                logger.LogInformation(logMessage);
-                return BadRequest();
-            }
+
+            return Ok(blogItems);
         }
 
         /// <summary>
@@ -200,48 +169,39 @@ namespace BlogAPI.Controllers
         [HttpGet("GetBlogLatest")]
         public async Task<ActionResult<BlogItemDTO>> GetBlogLatest(bool? preventIncrement = false)
         {
-            try
+            string queryString = string.Format("SELECT TOP 1 * FROM [BlogItem] ORDER BY [DateCreated] DESC");
+            string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+            BlogItemDTO blogItemDTO = new();
+
+            await using (SqlConnection connection = new(connString))
             {
-                string queryString = string.Format("SELECT TOP 1 * FROM [BlogItem] ORDER BY [DateCreated] DESC");
-                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
-                BlogItemDTO blogItemDTO = new();
+                SqlCommand command = new(queryString, connection);
+                connection.Open();
+                SqlDataReader reader = await command.ExecuteReaderAsync();
 
-                await using (SqlConnection connection = new(connString))
+                if (reader.Read())
                 {
-                    SqlCommand command = new(queryString, connection);
-                    connection.Open();
-                    SqlDataReader reader = await command.ExecuteReaderAsync();
-
-                    if (reader.Read())
-                    {
-                        blogItemDTO.Id = (int)reader["ID"];
-                        blogItemDTO.Title = reader["Title"].ToString();
-                        blogItemDTO.Content = reader["Content"].ToString();
-                        blogItemDTO.Requests = (int)reader["Requests"] + 1;
-                        blogItemDTO.DateCreated = reader["DateCreated"].ToString();
-                        blogItemDTO.DateModified = reader["DateModified"].ToString();
-                    }
-
-                    reader.Close();
-
-                    if (preventIncrement == false)
-                    {
-                        string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", blogItemDTO.Id);
-                        SqlCommand command1 = new(queryString1, connection);
-                        command1.ExecuteNonQuery();
-                    }
-
-                    connection.Close();
+                    blogItemDTO.Id = (int)reader["ID"];
+                    blogItemDTO.Title = reader["Title"].ToString();
+                    blogItemDTO.Content = reader["Content"].ToString();
+                    blogItemDTO.Requests = (int)reader["Requests"] + 1;
+                    blogItemDTO.DateCreated = reader["DateCreated"].ToString();
+                    blogItemDTO.DateModified = reader["DateModified"].ToString();
                 }
 
-                return blogItemDTO;
+                reader.Close();
+
+                if (preventIncrement == false)
+                {
+                    string queryString1 = string.Format("UPDATE [BlogItem] SET Requests = ISNULL(Requests, 0) + 1 WHERE ID = {0}", blogItemDTO.Id);
+                    SqlCommand command1 = new(queryString1, connection);
+                    command1.ExecuteNonQuery();
+                }
+
+                connection.Close();
             }
-            catch (Exception ex)
-            {
-                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed \n {ex.Message}";
-                logger.LogInformation(logMessage);
-                return BadRequest(ex.Message);
-            }
+
+            return blogItemDTO;
         }
 
         /// <summary>
@@ -251,28 +211,19 @@ namespace BlogAPI.Controllers
         [HttpGet("GetBlogCount")]
         public async Task<ActionResult<int>> GetBlogCount()
         {
-            try
-            {
-                string queryString = string.Format("SELECT COUNT(*) FROM [BlogItem]");
-                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
-                int blogCount;
+            string queryString = string.Format("SELECT COUNT(*) FROM [BlogItem]");
+            string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+            int blogCount;
 
-                await using (SqlConnection connection = new(connString))
-                {
-                    SqlCommand command = new(queryString, connection);
-                    connection.Open();
-                    blogCount = (int)command.ExecuteScalar();
-                    connection.Close();
-                }
-
-                return blogCount;
-            }
-            catch (Exception ex)
+            await using (SqlConnection connection = new(connString))
             {
-                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed \n {ex.Message}";
-                logger.LogInformation(logMessage);
-                return BadRequest(ex.Message);
+                SqlCommand command = new(queryString, connection);
+                connection.Open();
+                blogCount = (int)command.ExecuteScalar();
+                connection.Close();
             }
+
+            return blogCount;
         }
 
         /// <summary>
@@ -282,30 +233,21 @@ namespace BlogAPI.Controllers
         [HttpPost("EditBlog"), Authorize]
         public async Task<IActionResult> EditBlog(EditBlog editBlog)
         {
-            try
-            {
-                string date = DateTime.Now.ToString("yyyy/MM/dd");
-                string sqlEscapeTitle = Regex.Replace(editBlog.title, "'", "''");
-                string sqlEscapeContent = Regex.Replace(editBlog.content, "'", "''");
-                string queryString = string.Format("UPDATE [BlogItem] SET Title = N'{0}', Content = N'{1}', DateModified = '{2}' WHERE ID = {3}", sqlEscapeTitle, sqlEscapeContent, date, editBlog.id);
-                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+            string date = DateTime.Now.ToString("yyyy/MM/dd");
+            string sqlEscapeTitle = Regex.Replace(editBlog.title, "'", "''");
+            string sqlEscapeContent = Regex.Replace(editBlog.content, "'", "''");
+            string queryString = string.Format("UPDATE [BlogItem] SET Title = N'{0}', Content = N'{1}', DateModified = '{2}' WHERE ID = {3}", sqlEscapeTitle, sqlEscapeContent, date, editBlog.id);
+            string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-                await using (SqlConnection connection = new(connString))
-                {
-                    SqlCommand command = new(queryString, connection);
-                    connection.Open();
-                    command.ExecuteNonQuery();
-                    connection.Close();
-                }
-
-                return Ok();
-            }
-            catch (Exception ex)
+            await using (SqlConnection connection = new(connString))
             {
-                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {editBlog.id} \n {ex.Message}";
-                logger.LogInformation(logMessage);
-                return BadRequest();
+                SqlCommand command = new(queryString, connection);
+                connection.Open();
+                command.ExecuteNonQuery();
+                connection.Close();
             }
+
+            return Ok();
         }
 
         /// <summary>
@@ -316,29 +258,20 @@ namespace BlogAPI.Controllers
         [HttpPost("CreateBlog"), Authorize]
         public async Task<ActionResult<NewBlogItemDTO>> CreateBlog(NewBlogItemDTO newBlogItemDTO)
         {
-            try
-            {
-                string sqlEscapeTitle = Regex.Replace(newBlogItemDTO.Title, "'", "''");
-                string sqlEscapeContent = Regex.Replace(newBlogItemDTO.Content, "'", "''");
-                string queryString = string.Format("INSERT INTO [BlogItem] (Title, Content, DateCreated) VALUES (N'{0}', N'{1}', GetDate())", sqlEscapeTitle, sqlEscapeContent);
-                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+            string sqlEscapeTitle = Regex.Replace(newBlogItemDTO.Title, "'", "''");
+            string sqlEscapeContent = Regex.Replace(newBlogItemDTO.Content, "'", "''");
+            string queryString = string.Format("INSERT INTO [BlogItem] (Title, Content, DateCreated) VALUES (N'{0}', N'{1}', GetDate())", sqlEscapeTitle, sqlEscapeContent);
+            string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-                await using (SqlConnection connection = new SqlConnection(connString))
-                {
-                    SqlCommand command = new(queryString, connection);
-                    connection.Open();
-                    command.ExecuteNonQuery();
-                    connection.Close();
-                }
-
-                return Ok();
-            }
-            catch (Exception ex)
+            await using (SqlConnection connection = new SqlConnection(connString))
             {
-                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed \n {ex.Message}";
-                logger.LogInformation(logMessage);
-                return BadRequest();
+                SqlCommand command = new(queryString, connection);
+                connection.Open();
+                command.ExecuteNonQuery();
+                connection.Close();
             }
+
+            return Ok();
         }
 
         /// <summary>
@@ -348,27 +281,18 @@ namespace BlogAPI.Controllers
         [HttpPost("DeleteBlog"), Authorize]
         public async Task<IActionResult> DeleteBlog(DeleteBlog deleteBlog)
         {
-            try
-            {
-                string queryString = string.Format("DELETE FROM [BlogItem] WHERE ID = {0}", deleteBlog.id);
-                string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
+            string queryString = string.Format("DELETE FROM [BlogItem] WHERE ID = {0}", deleteBlog.id);
+            string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-                await using (SqlConnection connection = new(connString))
-                {
-                    SqlCommand command = new(queryString, connection);
-                    connection.Open();
-                    command.ExecuteNonQuery();
-                    connection.Close();
-                }
-
-                return Ok();
-            }
-            catch (Exception ex)
+            await using (SqlConnection connection = new(connString))
             {
-                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed for blog ID: {deleteBlog.id} \n {ex.Message}";
-                logger.LogInformation(logMessage);
-                return BadRequest();
+                SqlCommand command = new(queryString, connection);
+                connection.Open();
+                command.ExecuteNonQuery();
+                connection.Close();
             }
+
+            return Ok();
         }
 
         /// <summary>
@@ -377,29 +301,20 @@ namespace BlogAPI.Controllers
         /// <param name="file">Image to be uploaded</param>
         /// <returns>String URL path of uploaded image</returns>
         [HttpPost("UploadImage")]
-        public async Task<ActionResult<string>> UploadImage([FromForm]IFormFile file)
+        public async Task<ActionResult<string>> UploadImage([FromForm] IFormFile file)
         {
-            try
+            string timeStamp = DateTime.Now.ToString("yyyyMMddHHmmssffff");
+            string path = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\Images\Asd" + timeStamp + Path.GetExtension(file.FileName));
+            using (var stream = new FileStream(path, FileMode.Create))
             {
-                string timeStamp = DateTime.Now.ToString("yyyyMMddHHmmssffff");
-                string path = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\Images\" + timeStamp + Path.GetExtension(file.FileName));
-                using (var stream = new FileStream(path, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
+                await file.CopyToAsync(stream);
+            }
 #if RELEASE
                 return "https://blogapi.huxdev.com/Images/" + timeStamp + Path.GetExtension(file.FileName);
 #endif
 #if DEBUG
-                return "https://blogapi.huxdev.com/Images/TrapMoneyBrycey.jpg"; // This is an img sitting on the server for testing locally
+            return "https://blogapi.huxdev.com/Images/TrapMoneyBrycey.jpg"; // This is an img sitting on the server for testing locally
 #endif
-            }
-            catch (Exception ex)
-            {
-                logMessage = $"{DateTime.UtcNow.ToLongTimeString()} {Extensions.Extensions.GetCurrentMethod()} Failed to upload image: {file.FileName} \n {ex.Message}";
-                logger.LogInformation(logMessage);
-                return BadRequest();
-            }
         }
     }
 }
