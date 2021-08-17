@@ -1,8 +1,6 @@
 ﻿using BlogAPI.DTO;
 using BlogAPI.Models;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -20,7 +18,8 @@ namespace BlogAPI.Controllers
         }
 
         /// <summary>
-        /// Post error log
+        /// Post error log - this is primarly for testing
+        /// All errors are automatically saved to the DB in ErrorHandlerMiddleware
         /// </summary>
         /// <param>ErrorItem</param>
         /// <returns>Action result</returns>
@@ -30,6 +29,23 @@ namespace BlogAPI.Controllers
             context.ErrorItem.Add(errorItem);
             await context.SaveChangesAsync();
             return Ok();
+        }
+
+        /// <summary>
+        /// Get list of the error log
+        /// </summary>
+        /// <returns>ErrorItem[]</returns>
+        [HttpGet("GetAllErrors")]
+        public ActionResult<ErrorItem[]> GetAllErrors()
+        {
+            var returnVal = context.ErrorItem.ToList();
+
+            if (returnVal.Count > 0)
+            {
+                returnVal.Reverse();
+            }
+
+            return Ok(returnVal);
         }
     }
 }
