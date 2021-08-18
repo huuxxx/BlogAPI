@@ -10,6 +10,6 @@ namespace BlogAPI.Models
         {
         }
 
-        public DbSet<ErrorItem> ErrorItem { get; set; }
+        public DbSet<ErrorItemDTO> ErrorItem { get; set; }
     }
 }

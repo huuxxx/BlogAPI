@@ -15,6 +15,7 @@ namespace BlogAPI.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly IConfiguration configuration;
+        private const string SEARCH_VALUE = " in ";
 
         public ErrorHandlerMiddleware(RequestDelegate next, IConfiguration configuration)
         {
@@ -46,10 +47,10 @@ namespace BlogAPI.Middleware
                         break;
                 }
 
-                ErrorItem errorItem = new();
+                ErrorItemDTO errorItem = new();
                 errorItem.Id = Guid.NewGuid();
-                int index = error.StackTrace.LastIndexOf(" in ");
-                errorItem.StackTrace = error.StackTrace.Substring(index + 4) ?? "";          
+                int index = error.StackTrace.LastIndexOf(SEARCH_VALUE);
+                errorItem.StackTrace = error.StackTrace.Substring(index + SEARCH_VALUE.Length) ?? "";        
                 errorItem.Message = error.Message ?? "";
                 
                 string queryString = string.Format("INSERT INTO [ErrorItem] (Id, DateCreated, StackTrace, Message) VALUES ('{0}', GetDate(), '{1}', '{2}')", errorItem.Id, errorItem.StackTrace, errorItem.Message);
