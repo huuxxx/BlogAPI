@@ -18,7 +18,8 @@ namespace BlogAPI.Controllers
     public class BlogController : ControllerBase
     {
         private readonly IConfiguration configuration;
-        private const string TEST_STRING = "https://blogapi.huxdev.com/Images/TrapMoneyBrycey.jpg";
+        private const string TEST_FILE_STRING = "TrapMoneyBrycey.jpg";
+        private const string TEST_URL_STRING = "https://blogapi.huxdev.com/Images/TrapMoneyBrycey.jpg";
 
         public BlogController(IConfiguration configuration)
         {
@@ -314,7 +315,7 @@ namespace BlogAPI.Controllers
                 return "https://blogapi.huxdev.com/Images/" + timeStamp + Path.GetExtension(file.FileName);
 #endif
 #if DEBUG
-            return TEST_STRING;
+            return TEST_URL_STRING;
 #endif
         }
 
@@ -339,7 +340,7 @@ namespace BlogAPI.Controllers
             return fileEntries;
 #endif
 #if DEBUG
-            string[] test = { TEST_STRING };
+            string[] test = { TEST_FILE_STRING, TEST_FILE_STRING };
             return test;
 #endif
         }
