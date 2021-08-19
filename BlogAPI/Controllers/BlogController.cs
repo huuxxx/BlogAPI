@@ -18,6 +18,7 @@ namespace BlogAPI.Controllers
     public class BlogController : ControllerBase
     {
         private readonly IConfiguration configuration;
+        private const string TEST_STRING = "https://blogapi.huxdev.com/Images/TrapMoneyBrycey.jpg";
 
         public BlogController(IConfiguration configuration)
         {
@@ -313,7 +314,33 @@ namespace BlogAPI.Controllers
                 return "https://blogapi.huxdev.com/Images/" + timeStamp + Path.GetExtension(file.FileName);
 #endif
 #if DEBUG
-            return "https://blogapi.huxdev.com/Images/TrapMoneyBrycey.jpg"; // This is an img sitting on the server for testing locally
+            return TEST_STRING;
+#endif
+        }
+
+        /// <summary>
+        /// Get all files from wwwroot/Images
+        /// </summary>
+        /// <returns>Collection of images as string array</returns>
+        [HttpGet("GetAllImages")]
+        public string[] GetAllImages()
+        {
+            string path = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\Images\");
+            string[] fileEntries = Directory.GetFiles(path);
+            
+            if (fileEntries.Length > 0)
+            {
+                for (int i = 0; i < fileEntries.Length; i++)
+                {
+                    fileEntries[i] = Path.GetFileName(fileEntries[i]);
+                }
+            }
+#if RELEASE
+            return fileEntries;
+#endif
+#if DEBUG
+            string[] test = { TEST_STRING };
+            return test;
 #endif
         }
     }

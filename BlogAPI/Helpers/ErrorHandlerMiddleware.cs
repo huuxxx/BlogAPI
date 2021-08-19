@@ -8,6 +8,7 @@ using BlogAPI.DTO;
 using System.Text.Json;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using System.Text.RegularExpressions;
 
 namespace BlogAPI.Middleware
 {
@@ -52,8 +53,10 @@ namespace BlogAPI.Middleware
                 int index = error.StackTrace.LastIndexOf(SEARCH_VALUE);
                 errorItem.StackTrace = error.StackTrace.Substring(index + SEARCH_VALUE.Length) ?? "";        
                 errorItem.Message = error.Message ?? "";
-                
-                string queryString = string.Format("INSERT INTO [ErrorItem] (Id, DateCreated, StackTrace, Message) VALUES ('{0}', GetDate(), '{1}', '{2}')", errorItem.Id, errorItem.StackTrace, errorItem.Message);
+                string sqlEscapeStackTrace = Regex.Replace(errorItem.StackTrace, "'", "''");
+                string sqlEscapeMessage = Regex.Replace(errorItem.Message, "'", "''");
+
+                string queryString = string.Format("INSERT INTO [ErrorItem] (Id, DateCreated, StackTrace, Message) VALUES ('{0}', GetDate(), '{1}', '{2}')", errorItem.Id, sqlEscapeStackTrace, sqlEscapeMessage);
                 string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
                 
                 using (SqlConnection connection = new(connString))
