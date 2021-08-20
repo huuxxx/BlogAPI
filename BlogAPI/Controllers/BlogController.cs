@@ -320,6 +320,19 @@ namespace BlogAPI.Controllers
         }
 
         /// <summary>
+        /// Delete an image from the server
+        /// </summary>
+        /// <param name="deleteImage">Image object containing the ID of the target</param>
+        /// <returns>Action result</returns>
+        [HttpPost("DeleteImage"), Authorize]
+        public ActionResult DeleteImage(DeleteImage deleteImage)
+        {
+            string path = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\Images\" + deleteImage.id);
+            System.IO.File.Delete(path);
+            return Ok();
+        }
+
+        /// <summary>
         /// Get all files from wwwroot/Images
         /// </summary>
         /// <returns>Collection of images as string array</returns>
@@ -328,7 +341,7 @@ namespace BlogAPI.Controllers
         {
             string path = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\Images\");
             string[] fileEntries = Directory.GetFiles(path);
-            
+
             if (fileEntries.Length > 0)
             {
                 for (int i = 0; i < fileEntries.Length; i++)
@@ -340,7 +353,7 @@ namespace BlogAPI.Controllers
             return fileEntries;
 #endif
 #if DEBUG
-            string[] test = { TEST_FILE_STRING, TEST_FILE_STRING };
+            string[] test = { TEST_FILE_STRING };
             return test;
 #endif
         }
