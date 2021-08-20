@@ -65,7 +65,7 @@ namespace BlogAPI.Controllers
         /// <summary>
         /// Remove all error logs from the database
         /// </summary>
-        [HttpDelete("ClearErrors")]
+        [HttpPost("ClearErrors")]
         public ActionResult ClearErrors()
         {
             string queryString = "TRUNCATE TABLE [ErrorItem]";
