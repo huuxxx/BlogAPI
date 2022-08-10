@@ -2,7 +2,6 @@
 using BlogAPI.Models;
 using BlogAPI.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace BlogAPI.Controllers
 {

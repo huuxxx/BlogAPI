@@ -1,13 +1,10 @@
 ﻿using BlogAPI.DTO;
-using BlogAPI.Entities;
 using BlogAPI.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using System.Globalization;
+using BlogAPI.Services;
 
 namespace BlogAPI.Controllers
 {
@@ -15,132 +12,60 @@ namespace BlogAPI.Controllers
     [ApiController]
     public class AnalyticsController : ControllerBase
     {
-        private const int DAYS_IN_WEEK = 7;
-        private const string ASCII_TICK = "\u2713";
-        private readonly VisitorContext context;
+        private AnalyticsService service;
 
-        public AnalyticsController(VisitorContext context)
+        public AnalyticsController(AnalyticsService service)
         {
-            this.context = context;
+            this.service = service;
         }
 
         /// <summary>
         /// Get total site visitors
         /// </summary>
-        /// <param></param>
-        /// <returns></returns>
         [HttpGet("GetAnalytics")]
         public ActionResult<AnalyticsOverviewDTO> GetAnalytics()
         {
-            AnalyticsOverviewDTO overview = new();
-            overview.TotalVisits = context.VisitorItem.Count();
-            return Ok(overview);
+            return Ok(service.GetVisitorsCount());
         }
 
         /// <summary>
         /// Get daily visits for the last week
         /// </summary>
-        /// <param></param>
-        /// <returns></returns>
         [HttpGet("GetWeekVisits")]
         public ActionResult<AnalyticsVisitsInDayDTO[]> GetWeekVisits()
         {
-            var retVal = new List<AnalyticsVisitsInDayDTO>();
-            var cultureInfo = new CultureInfo("en-US");
-
-            for (int i = DAYS_IN_WEEK; i > 0; i--)
-            {
-                AnalyticsVisitsInDayDTO tempDbObj = new();
-                tempDbObj.NameOfDay = DateTime.Now.AddDays(-(i - 1)).DayOfWeek.ToString();
-                var dateSelector = DateTime.ParseExact(DateTime.Now.AddDays(-(i - 1)).ToString("yyyy/MM/dd"), "yyyy/MM/dd", cultureInfo);
-                var query = from x in context.VisitorItem
-                            where x.DateVisited == dateSelector
-                            select x.DateVisited;
-                tempDbObj.VisitsInDay = query.Count();
-                retVal.Add(tempDbObj);
-            }
-
-            return Ok(retVal);
+            return Ok(service.GetVisitorsForEachDayThisWeek());
         }
 
         /// <summary>
         /// Return last x number of visits
         /// </summary>
         /// <param name="numOfRecords">Number of records to request. Default: 10</param>
-        /// <returns></returns>
         [HttpPost("GetLastVisits")]
         public ActionResult<List<VisitorItemDTO>> GetLastVisits(int numOfRecords = 10)
         {
-            var query = context.VisitorItem.OrderByDescending(x => x.Id).Take(numOfRecords);
-            List<Visitor> queryResults = query.ToList();
-            queryResults.Reverse();
-            List<VisitorItemDTO> retVal = new();
-
-            for (int i = 0; i < queryResults.Count; i++)
-            {
-                VisitorItemDTO tempItem = new();
-                tempItem.VisitorIP = queryResults[i].VisitorIP.ToString();
-                tempItem.DateVisited = queryResults[i].DateVisited.ToString("dd/MM/yyyy");
-                tempItem.ScreenHeight = queryResults[i].ScreenHeight.ToString();
-                tempItem.ScreenWidth = queryResults[i].ScreenWidth.ToString();
-                tempItem.ViewedAbout = queryResults[i].ViewedAbout ? ASCII_TICK : "";
-                tempItem.ViewedBlogs = queryResults[i].ViewedBlogs ? ASCII_TICK : "";
-                tempItem.ViewedProjects = queryResults[i].ViewedProjects ? ASCII_TICK : "";
-                retVal.Add(tempItem);
-            }
-
-            return Ok(retVal);
+            return Ok(service.GetLastVisits(numOfRecords));
         }
 
         /// <summary>
-        /// Post initial site visitor info
+        /// Register new site visitor
         /// </summary>
-        /// <param></param>
         /// <returns>Session ID</returns>
         [HttpPost("NewVisitor")]
         public async Task<ActionResult<int>> NewVisitor(Visitor visitorItem)
         {
-            visitorItem.VisitorIP = HttpContext.Connection.RemoteIpAddress.ToString();
-            context.VisitorItem.Add(visitorItem);
-            await context.SaveChangesAsync();
-            var newVisitorItem = context.VisitorItem.OrderByDescending(x => x.Id).FirstOrDefault();
-            int newId = newVisitorItem.Id;
-            return Ok(newId);
+            return Ok(await service.RegisterNewVisitor(visitorItem, HttpContext.Connection.RemoteIpAddress.ToString()));
         }
 
         /// <summary>
         /// Post page view info
         /// </summary>
-        /// <param></param>
-        /// <returns></returns>
         [HttpPost("PageViewed")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PageViewed(PageViewed pageViewedItem)
         {
-            var visitorItem = new Visitor { Id = pageViewedItem.SessionId };
-            context.VisitorItem.Attach(visitorItem);
-
-            switch (pageViewedItem.PageType)
-            {
-                case "Blogs":
-                    visitorItem.ViewedBlogs = true;
-                    context.Entry(visitorItem).Property(x => x.ViewedBlogs).IsModified = true;
-                    break;
-                case "Projects":
-                    visitorItem.ViewedProjects = true;
-                    context.Entry(visitorItem).Property(x => x.ViewedProjects).IsModified = true;
-                    break;
-                case "About":
-                    visitorItem.ViewedAbout = true;
-                    context.Entry(visitorItem).Property(x => x.ViewedAbout).IsModified = true;
-                    break;
-                default:
-                    return BadRequest($"Invalid Page Type {pageViewedItem.PageType}");
-            }
-
-            await context.SaveChangesAsync();
-            return Ok();
+            return Ok(await service.PageViewed(pageViewedItem));
         }
     }
 }
