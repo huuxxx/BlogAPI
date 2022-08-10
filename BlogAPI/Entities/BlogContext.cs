@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlogAPI.Entities
 {
-    public class BlogItemContext : DbContext
+    public class BlogContext : DbContext
     {
-        public BlogItemContext(DbContextOptions<BlogItemContext> options)
+        public BlogContext(DbContextOptions<BlogContext> options)
             : base(options)
         {
         }

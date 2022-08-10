@@ -26,7 +26,7 @@ namespace BlogAPI
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<BlogItemContext>(options => options.UseSqlServer(_configuration.GetConnectionString("BlogAPI")));
+            services.AddDbContext<BlogContext>(options => options.UseSqlServer(_configuration.GetConnectionString("BlogAPI")));
 
             services.AddDbContext<VisitorContext>(options => options.UseSqlServer(_configuration.GetConnectionString("BlogAPI")));
 

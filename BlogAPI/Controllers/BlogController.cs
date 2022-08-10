@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using BlogAPI.Entities;
 using BlogAPI.DTO;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
