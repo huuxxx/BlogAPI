@@ -65,7 +65,7 @@ namespace BlogAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PageViewed(PageViewed pageViewedItem)
         {
-            return Ok(await service.PageViewed(pageViewedItem));
+            return Ok(await service.RegisterPageView(pageViewedItem));
         }
     }
 }

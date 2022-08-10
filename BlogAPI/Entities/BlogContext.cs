@@ -11,6 +11,5 @@ namespace BlogAPI.Entities
         }
 
         public DbSet<BlogItem> BlogItem { get; set; }
-        public object BlogItemDTO { get; internal set; }
     }
 }
