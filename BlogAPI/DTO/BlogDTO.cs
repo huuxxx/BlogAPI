@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace BlogAPI.DTO
+﻿namespace BlogAPI.DTO
 {
-    public class BlogItemDTO
+    public class BlogDTO
     {
         public int Id { get; set; }
         public string Title { get; set; }

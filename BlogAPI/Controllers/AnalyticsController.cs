@@ -1,4 +1,5 @@
 ﻿using BlogAPI.DTO;
+using BlogAPI.Entities;
 using BlogAPI.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,9 +30,9 @@ namespace BlogAPI.Controllers
         /// <param></param>
         /// <returns></returns>
         [HttpGet("GetAnalytics")]
-        public ActionResult<AnalyticsOverview> GetAnalytics()
+        public ActionResult<AnalyticsOverviewDTO> GetAnalytics()
         {
-            AnalyticsOverview overview = new();
+            AnalyticsOverviewDTO overview = new();
             overview.TotalVisits = context.VisitorItem.Count();
             return Ok(overview);
         }
@@ -42,14 +43,14 @@ namespace BlogAPI.Controllers
         /// <param></param>
         /// <returns></returns>
         [HttpGet("GetWeekVisits")]
-        public ActionResult<AnalyticsWeekVisits[]> GetWeekVisits()
+        public ActionResult<AnalyticsVisitsInDayDTO[]> GetWeekVisits()
         {
-            var retVal = new List<AnalyticsWeekVisits>();
+            var retVal = new List<AnalyticsVisitsInDayDTO>();
             var cultureInfo = new CultureInfo("en-US");
 
             for (int i = DAYS_IN_WEEK; i > 0; i--)
             {
-                AnalyticsWeekVisits tempDbObj = new();
+                AnalyticsVisitsInDayDTO tempDbObj = new();
                 tempDbObj.NameOfDay = DateTime.Now.AddDays(-(i - 1)).DayOfWeek.ToString();
                 var dateSelector = DateTime.ParseExact(DateTime.Now.AddDays(-(i - 1)).ToString("yyyy/MM/dd"), "yyyy/MM/dd", cultureInfo);
                 var query = from x in context.VisitorItem
@@ -68,16 +69,16 @@ namespace BlogAPI.Controllers
         /// <param name="numOfRecords">Number of records to request. Default: 10</param>
         /// <returns></returns>
         [HttpPost("GetLastVisits")]
-        public ActionResult<List<VisitorItemConverted>> GetLastVisits(int numOfRecords = 10)
+        public ActionResult<List<VisitorItemDTO>> GetLastVisits(int numOfRecords = 10)
         {
             var query = context.VisitorItem.OrderByDescending(x => x.Id).Take(numOfRecords);
-            List<VisitorItem> queryResults = query.ToList();
+            List<Visitor> queryResults = query.ToList();
             queryResults.Reverse();
-            List<VisitorItemConverted> retVal = new();
+            List<VisitorItemDTO> retVal = new();
 
             for (int i = 0; i < queryResults.Count; i++)
             {
-                VisitorItemConverted tempItem = new();
+                VisitorItemDTO tempItem = new();
                 tempItem.VisitorIP = queryResults[i].VisitorIP.ToString();
                 tempItem.DateVisited = queryResults[i].DateVisited.ToString("dd/MM/yyyy");
                 tempItem.ScreenHeight = queryResults[i].ScreenHeight.ToString();
@@ -97,7 +98,7 @@ namespace BlogAPI.Controllers
         /// <param></param>
         /// <returns>Session ID</returns>
         [HttpPost("NewVisitor")]
-        public async Task<ActionResult<int>> NewVisitor(VisitorItem visitorItem)
+        public async Task<ActionResult<int>> NewVisitor(Visitor visitorItem)
         {
             visitorItem.VisitorIP = HttpContext.Connection.RemoteIpAddress.ToString();
             context.VisitorItem.Add(visitorItem);
@@ -117,7 +118,7 @@ namespace BlogAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> PageViewed(PageViewed pageViewedItem)
         {
-            var visitorItem = new VisitorItem { Id = pageViewedItem.SessionId };
+            var visitorItem = new Visitor { Id = pageViewedItem.SessionId };
             context.VisitorItem.Attach(visitorItem);
 
             switch (pageViewedItem.PageType)

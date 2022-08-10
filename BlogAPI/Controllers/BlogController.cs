@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using BlogAPI.Models;
+using BlogAPI.Entities;
 using BlogAPI.DTO;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using System.IO;
+using BlogAPI.Models;
 
 namespace BlogAPI.Controllers
 {
@@ -32,14 +33,14 @@ namespace BlogAPI.Controllers
         /// </summary>
         /// <returns>Blog item</returns>
         [HttpPost("GetBlog")]
-        public async Task<ActionResult<BlogItemDTO>> GetBlog(GetBlog getBlog)
+        public async Task<ActionResult<BlogDTO>> GetBlog(GetBlog getBlog)
         {
             // Select n'th blog
             string queryString = string.Format("SELECT * FROM (SELECT ROW_NUMBER() OVER (ORDER BY DateCreated DESC) AS row_num ,ID, Title, Content, Requests, DateCreated, DateModified FROM [BlogItem]) AS sub WHERE row_num = {0}", getBlog.Id);
 
             string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-            BlogItemDTO blogItemDTO = new();
+            BlogDTO blogItemDTO = new();
 
             using (SqlConnection connection = new(connString))
             {
@@ -81,7 +82,7 @@ namespace BlogAPI.Controllers
         /// </summary>
         /// <returns>Blog item</returns>
         [HttpPost("GetBlogId")]
-        public async Task<ActionResult<BlogItemDTO>> GetBlogId(GetBlog getBlog)
+        public async Task<ActionResult<BlogDTO>> GetBlogId(GetBlog getBlog)
         {
             string queryString = string.Format("SELECT * FROM [BlogItem] WHERE ID = {0}", getBlog.Id);
 
@@ -89,7 +90,7 @@ namespace BlogAPI.Controllers
 
             string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-            BlogItemDTO blogItemDTO = new();
+            BlogDTO blogItemDTO = new();
 
             using (SqlConnection connection = new(connString))
             {
@@ -128,13 +129,13 @@ namespace BlogAPI.Controllers
         /// </summary>
         /// <returns>Blog - ID(s), Title(s), Date(s)</returns>
         [HttpGet("GetAllBlogs")]
-        public async Task<ActionResult<List<BlogGetAllItem>>> GetAllBlogs()
+        public async Task<ActionResult<List<BlogGetAllBlogsDTO>>> GetAllBlogs()
         {
             string queryString = "SELECT id, title, dateCreated FROM [BlogItem] ORDER BY id DESC";
 
             string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
 
-            List<BlogGetAllItem> blogItems = new();
+            List<BlogGetAllBlogsDTO> blogItems = new();
 
             using (SqlConnection connection = new(connString))
             {
@@ -149,7 +150,7 @@ namespace BlogAPI.Controllers
 
                 while (reader.Read())
                 {
-                    BlogGetAllItem blogItem = new();
+                    BlogGetAllBlogsDTO blogItem = new();
                     blogItem.Id = (int)reader["ID"];
                     blogItem.Title = reader["Title"].ToString();
                     blogItem.DateCreated = reader["DateCreated"].ToString();
@@ -169,11 +170,11 @@ namespace BlogAPI.Controllers
         /// <param name="preventIncrement">default: false. If true it will prevent an increase to the view count of the blog</param>
         /// <returns>Blog item</returns>
         [HttpGet("GetBlogLatest")]
-        public async Task<ActionResult<BlogItemDTO>> GetBlogLatest(bool? preventIncrement = false)
+        public async Task<ActionResult<BlogDTO>> GetBlogLatest(bool? preventIncrement = false)
         {
             string queryString = string.Format("SELECT TOP 1 * FROM [BlogItem] ORDER BY [DateCreated] DESC");
             string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
-            BlogItemDTO blogItemDTO = new();
+            BlogDTO blogItemDTO = new();
 
             await using (SqlConnection connection = new(connString))
             {

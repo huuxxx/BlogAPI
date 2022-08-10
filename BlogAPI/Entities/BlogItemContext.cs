@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BlogAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace BlogAPI.Models
+namespace BlogAPI.Entities
 {
     public class BlogItemContext : DbContext
     {

@@ -1,7 +1,7 @@
-﻿using BlogAPI.DTO;
+﻿using BlogAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BlogAPI.Models
+namespace BlogAPI.Entities
 {
     public class VisitorContext : DbContext
     {
@@ -10,6 +10,6 @@ namespace BlogAPI.Models
         {
         }
 
-        public DbSet<VisitorItem> VisitorItem { get; set; }
+        public DbSet<Visitor> VisitorItem { get; set; }
     }
 }

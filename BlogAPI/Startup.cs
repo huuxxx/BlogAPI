@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
-using BlogAPI.Models;
+using BlogAPI.Entities;
 using BlogAPI.Authentication;
 using Microsoft.AspNetCore.Identity;
 using JWTAuthentication.Authentication;
@@ -32,12 +32,11 @@ namespace BlogAPI
 
             services.AddDbContext<ErrorContext>(options => options.UseSqlServer(_configuration.GetConnectionString("BlogAPI")));
 
+            services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(_configuration.GetConnectionString("BlogAPI")));
+
             services.AddControllers();
 
             services.AddCors();
-
-            // For Entity Framework  
-            services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(_configuration.GetConnectionString("BlogAPI")));
 
             // For Identity  
             services.AddIdentity<ApplicationUser, IdentityRole>()

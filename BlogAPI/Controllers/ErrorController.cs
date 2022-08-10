@@ -1,4 +1,5 @@
 ﻿using BlogAPI.DTO;
+using BlogAPI.Entities;
 using BlogAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
