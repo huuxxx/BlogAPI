@@ -1,11 +1,7 @@
 ﻿using BlogAPI.DTO;
-using BlogAPI.Entities;
 using BlogAPI.Models;
+using BlogAPI.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace BlogAPI.Controllers
@@ -14,13 +10,11 @@ namespace BlogAPI.Controllers
     [ApiController]
     public class ErrorController : ControllerBase
     {
-        private readonly ErrorContext context;
-        private readonly IConfiguration configuration;
+        private readonly ErrorService service;
 
-        public ErrorController(ErrorContext context, IConfiguration configuration)
+        public ErrorController(ErrorService service)
         {
-            this.context = context;
-            this.configuration = configuration;
+            this.service = service;
         }
 
         /// <summary>
@@ -30,11 +24,9 @@ namespace BlogAPI.Controllers
         /// <param>ErrorItem</param>
         /// <returns>Action result</returns>
         [HttpPost("LogError")]
-        public async Task<ActionResult> LogError(ErrorItemDTO errorItem)
+        public ActionResult LogError(ErrorItemDTO errorItem)
         {
-            context.ErrorItem.Add(errorItem);
-            await context.SaveChangesAsync();
-            return Ok();
+            return Ok(service.PostError(errorItem));
         }
 
         /// <summary>
@@ -44,23 +36,7 @@ namespace BlogAPI.Controllers
         [HttpGet("GetAllErrors")]
         public ActionResult<ErrorItem[]> GetAllErrors()
         {
-            var queryList = context.ErrorItem.ToList();
-            List<ErrorItem> returnList = new();
-
-            if (queryList.Count > 0)
-            {
-                foreach (var item in queryList)
-                {
-                    ErrorItem temp = new();
-                    temp.Id = item.Id;
-                    temp.DateCreated = item.DateCreated.ToString("dd MMM yyyy hh:mmtt");
-                    temp.StackTrace = item.StackTrace;
-                    temp.Message = item.Message;
-                    returnList.Add(temp);
-                }
-            }
-
-            return Ok(returnList);
+            return Ok(service.GetAllErrors());
         }
 
         /// <summary>
@@ -69,16 +45,7 @@ namespace BlogAPI.Controllers
         [HttpPost("ClearErrors")]
         public ActionResult ClearErrors()
         {
-            string queryString = "TRUNCATE TABLE [ErrorItem]";
-            string connString = ConfigurationExtensions.GetConnectionString(configuration, "BlogAPI");
-            using (SqlConnection connection = new(connString))
-            {
-                connection.Open();
-                SqlCommand command = new(queryString, connection);
-                command.ExecuteNonQuery();
-                connection.Close();
-            }
-            return Ok();
+            return Ok(service.DeleteAllErrors());
         }
     }
 }
