@@ -1,6 +1,6 @@
 ﻿using BlogAPI.DTO;
+using BlogAPI.Interfaces;
 using BlogAPI.Models;
-using BlogAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BlogAPI.Controllers
@@ -9,9 +9,9 @@ namespace BlogAPI.Controllers
     [ApiController]
     public class ErrorController : ControllerBase
     {
-        private readonly ErrorService service;
+        private readonly IErrorService service;
 
-        public ErrorController(ErrorService service)
+        public ErrorController(IErrorService service)
         {
             this.service = service;
         }

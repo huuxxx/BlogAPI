@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using BlogAPI.Services;
+using BlogAPI.Interfaces;
 
 namespace BlogAPI.Controllers
 {
@@ -12,9 +12,9 @@ namespace BlogAPI.Controllers
     [ApiController]
     public class AnalyticsController : ControllerBase
     {
-        private AnalyticsService service;
+        private IAnalyticsService service;
 
-        public AnalyticsController(AnalyticsService service)
+        public AnalyticsController(IAnalyticsService service)
         {
             this.service = service;
         }

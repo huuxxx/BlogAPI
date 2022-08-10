@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using BlogAPI.Middleware;
+using BlogAPI.Services;
+using BlogAPI.Interfaces;
 
 namespace BlogAPI
 {
@@ -27,12 +29,13 @@ namespace BlogAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<BlogContext>(options => options.UseSqlServer(_configuration.GetConnectionString("BlogAPI")));
-
             services.AddDbContext<VisitorContext>(options => options.UseSqlServer(_configuration.GetConnectionString("BlogAPI")));
-
             services.AddDbContext<ErrorContext>(options => options.UseSqlServer(_configuration.GetConnectionString("BlogAPI")));
-
             services.AddDbContext<AuthDbContext>(options => options.UseSqlServer(_configuration.GetConnectionString("BlogAPI")));
+
+            services.AddScoped<IBlogService, BlogService>();
+            services.AddScoped<IAnalyticsService, AnalyticsService>();
+            services.AddScoped<IErrorService, ErrorService>();
 
             services.AddControllers();
 

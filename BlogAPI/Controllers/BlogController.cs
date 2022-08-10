@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using BlogAPI.DTO;
 using Microsoft.AspNetCore.Authorization;
 using BlogAPI.Models;
-using BlogAPI.Services;
+using BlogAPI.Interfaces;
 
 namespace BlogAPI.Controllers
 {
@@ -13,9 +13,9 @@ namespace BlogAPI.Controllers
     [ApiController]
     public class BlogController : ControllerBase
     {
-        private readonly BlogService service;
+        private readonly IBlogService service;
 
-        public BlogController(BlogService service)
+        public BlogController(IBlogService service)
         {
             this.service = service;
         }
