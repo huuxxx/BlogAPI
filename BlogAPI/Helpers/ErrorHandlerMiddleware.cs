@@ -48,7 +48,7 @@ namespace BlogAPI.Middleware
                         break;
                 }
 
-                ErrorItemDTO errorItem = new();
+                ErrorDto errorItem = new();
                 errorItem.Id = Guid.NewGuid();
                 int index = error.StackTrace.LastIndexOf(SEARCH_VALUE);
                 errorItem.StackTrace = error.StackTrace.Substring(index + SEARCH_VALUE.Length) ?? "";        

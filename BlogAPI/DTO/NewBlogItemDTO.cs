@@ -1,7 +1,7 @@
 ﻿
 namespace BlogAPI.DTO
 {
-    public class NewBlogItemDTO
+    public class NewBlogItemDto
     {
         public string Title { get; set; }
         public string Content { get; set; }

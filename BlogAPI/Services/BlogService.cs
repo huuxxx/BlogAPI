@@ -25,23 +25,34 @@ namespace BlogAPI.Services
             this.context = context;
         }
         
-        public async Task<int> CreateBlog(NewBlogItemDTO newBlogItemDTO)
+        public async Task<int> CreateBlog(NewBlogItemDto newBlogItemDTO)
         {
-            BlogItem newBlog = new()
+            int latestId;
+
+            if (!context.BlogItem.Any())
+            {
+                latestId = 0;
+            }
+            else
+            {
+                latestId = context.BlogItem.OrderByDescending(x => x.Id).FirstOrDefault().Id + 1;
+            }
+
+            Blog newBlog = new()
             {
                 Content = Regex.Replace(newBlogItemDTO.Content, "'", "''"),
                 Title = Regex.Replace(newBlogItemDTO.Title, "'", "''"),
-                DateCreated = DateTime.Now.ToString("yyyy/MM/dd"),
-                Id = context.BlogItem.OrderByDescending(x => x.Id).First().Id + 1,
+                DateCreated = DateTime.Now,
+                Id = latestId,
             };
             
-            context.BlogItem.Attach(newBlog);
+            context.BlogItem.Add(newBlog);
             return await context.SaveChangesAsync();
         }
 
         public async Task<int> DeleteBlog(DeleteBlog deleteBlog)
         {
-            BlogItem blogToDelete = new() { Id = deleteBlog.id };
+            Blog blogToDelete = new() { Id = deleteBlog.id };
             context.BlogItem.Attach(blogToDelete);
             context.BlogItem.Remove(blogToDelete);
             return await context.SaveChangesAsync();
@@ -52,35 +63,35 @@ namespace BlogAPI.Services
             var query = context.BlogItem.First(x => x.Id == editBlog.id);
             query.Content = Regex.Replace(editBlog.content, "'", "''");
             query.Title = Regex.Replace(editBlog.title, "'", "''");
-            query.DateModified = DateTime.Now.ToString("yyyy/MM/dd");
+            query.DateModified = DateTime.Now;
             return await context.SaveChangesAsync();
         }
 
-        public Task<List<BlogGetAllBlogsDTO>> GetAllBlogs()
+        public Task<List<BlogGetAllBlogsDto>> GetAllBlogs()
         {
             var query = context.BlogItem.OrderByDescending(x => x.Id).ToList();
 
-            List<BlogGetAllBlogsDTO> returnList = new();
+            List<BlogGetAllBlogsDto> returnList = new();
 
             foreach (var item in query)
             {
-                BlogGetAllBlogsDTO temp = new();
+                BlogGetAllBlogsDto temp = new();
                 temp.Id = item.Id;
                 temp.Title = item.Title;
-                temp.DateCreated = item.DateCreated;
+                temp.DateCreated = item.DateCreated.ToString("yyyy/MM/dd");
                 returnList.Add(temp);
             }
 
             return Task.FromResult(returnList);
         }
 
-        public Task<BlogDTO> GetBlog(GetBlog getBlog)
+        public Task<BlogDto> GetBlog(GetBlog getBlog)
         {
             var query = context.BlogItem.OrderByDescending(x => x.Id).Take(getBlog.Id).First();
             return MapBlog(query, getBlog.PreventIncrement);
         }
 
-        public Task<BlogDTO> GetBlogById(GetBlog getBlog)
+        public Task<BlogDto> GetBlogById(GetBlog getBlog)
         {
             var query = context.BlogItem.First(x => x.Id == getBlog.Id);
             return MapBlog(query, getBlog.PreventIncrement);
@@ -92,16 +103,38 @@ namespace BlogAPI.Services
             return Task.FromResult(query);
         }
 
-        public Task<BlogDTO> GetBlogLatest(bool preventIncrement)
+        public Task<BlogDto> GetBlogLatest(bool preventIncrement)
         {
-            var query = context.BlogItem.OrderByDescending(x => x.Id).Take(1).First();
+            var query = context.BlogItem.OrderByDescending(x => x.Id).FirstOrDefault();
             return MapBlog(query, preventIncrement);
+        }
+
+        private async Task<BlogDto> MapBlog(Blog inputBlog, bool preventIncrement)
+        {
+            var query = context.BlogItem.First(x => x.Id == inputBlog.Id);
+            Blog blogTemp = query;
+
+            if (!preventIncrement)
+            {
+                blogTemp.Requests++;
+                await context.SaveChangesAsync();
+            }
+
+            BlogDto returnBlog = new();
+            returnBlog.Id = blogTemp.Id;
+            returnBlog.Title = blogTemp.Title;
+            returnBlog.Content = blogTemp.Content;
+            returnBlog.Requests = (int)blogTemp.Requests;
+            returnBlog.DateCreated = blogTemp.DateCreated.ToString("yyyy/MM/dd");
+            returnBlog.DateModified = blogTemp.DateModified.ToString("yyyy/MM/dd");
+
+            return returnBlog;
         }
 
         public async Task<string> UploadImage([FromForm] IFormFile file)
         {
             string timeStamp = DateTime.Now.ToString("yyyyMMddHHmmssffff");
-            string path = Path.Combine(Directory.GetCurrentDirectory(), @"wwwroot\Images\" + timeStamp + Path.GetExtension(file.FileName));
+            string path = Path.Combine(Directory.GetCurrentDirectory(), ImagesDirectory + timeStamp + Path.GetExtension(file.FileName));
             using (var stream = new FileStream(path, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
@@ -112,28 +145,6 @@ namespace BlogAPI.Services
 #if DEBUG
             return TestUrlString;
 #endif
-        }
-
-        private async Task<BlogDTO> MapBlog(BlogItem blogItem, bool preventIncrement)
-        {
-            var query = context.BlogItem.First(x => x.Id == blogItem.Id);
-            BlogItem blogTemp = query;
-
-            if (!preventIncrement)
-            {
-                blogTemp.Requests++;
-                await context.SaveChangesAsync();
-            }
-
-            BlogDTO blog = new();
-            blog.Id = blogTemp.Id;
-            blog.Title = blogTemp.Title;
-            blog.Content = blogTemp.Content;
-            blog.Requests = blogTemp.Requests;
-            blog.DateCreated = blogTemp.DateCreated;
-            blog.DateModified = blogTemp.DateModified;
-
-            return blog;
         }
 
         public Task<bool> DeleteImage(DeleteImage deleteImage)

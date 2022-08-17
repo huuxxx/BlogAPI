@@ -23,7 +23,7 @@ namespace BlogAPI.Controllers
         /// <param>ErrorItem</param>
         /// <returns>Action result</returns>
         [HttpPost("LogError")]
-        public ActionResult LogError(ErrorItemDTO errorItem)
+        public ActionResult LogError(Error errorItem)
         {
             return Ok(service.PostError(errorItem));
         }
@@ -33,7 +33,7 @@ namespace BlogAPI.Controllers
         /// </summary>
         /// <returns>Mapped ErrorItem</returns>
         [HttpGet("GetAllErrors")]
-        public ActionResult<ErrorItem[]> GetAllErrors()
+        public ActionResult<ErrorDto[]> GetAllErrors()
         {
             return Ok(service.GetAllErrors());
         }

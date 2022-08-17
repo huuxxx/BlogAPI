@@ -23,7 +23,7 @@ namespace BlogAPI.Controllers
         /// Get total site visitors
         /// </summary>
         [HttpGet("GetAnalytics")]
-        public ActionResult<AnalyticsOverviewDTO> GetAnalytics()
+        public ActionResult<AnalyticsOverviewDto> GetAnalytics()
         {
             return Ok(service.GetVisitorsCount());
         }
@@ -32,7 +32,7 @@ namespace BlogAPI.Controllers
         /// Get daily visits for the last week
         /// </summary>
         [HttpGet("GetWeekVisits")]
-        public ActionResult<AnalyticsVisitsInDayDTO[]> GetWeekVisits()
+        public ActionResult<AnalyticsVisitsInDayDto[]> GetWeekVisits()
         {
             return Ok(service.GetVisitorsForEachDayThisWeek());
         }
@@ -42,7 +42,7 @@ namespace BlogAPI.Controllers
         /// </summary>
         /// <param name="numOfRecords">Number of records to request. Default: 10</param>
         [HttpPost("GetLastVisits")]
-        public ActionResult<List<VisitorItemDTO>> GetLastVisits(int numOfRecords = 10)
+        public ActionResult<List<VisitorItemDto>> GetLastVisits(int numOfRecords = 10)
         {
             return Ok(service.GetLastVisits(numOfRecords));
         }

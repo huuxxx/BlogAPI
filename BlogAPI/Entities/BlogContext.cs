@@ -10,6 +10,6 @@ namespace BlogAPI.Entities
         {
         }
 
-        public DbSet<BlogItem> BlogItem { get; set; }
+        public DbSet<Blog> BlogItem { get; set; }
     }
 }

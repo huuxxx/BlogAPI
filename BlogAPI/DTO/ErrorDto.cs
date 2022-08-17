@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BlogAPI.DTO
 {
-    public class ErrorItemDTO
+    public class ErrorDto
     {
         [Key]
         public Guid Id { get; set; }

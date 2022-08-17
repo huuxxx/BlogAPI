@@ -7,11 +7,11 @@ namespace BlogAPI.Interfaces
 {
     public interface IAnalyticsService
     {
-        Task<AnalyticsOverviewDTO> GetVisitorsCount();
+        Task<AnalyticsOverviewDto> GetVisitorsCount();
 
-        Task<AnalyticsVisitsInDayDTO[]> GetVisitorsForEachDayThisWeek();
+        Task<AnalyticsVisitsInDayDto[]> GetVisitorsForEachDayThisWeek();
 
-        Task<List<VisitorItemDTO>> GetLastVisits(int numOfRecords);
+        Task<List<VisitorItemDto>> GetLastVisits(int numOfRecords);
 
         Task<int> RegisterNewVisitor(Visitor visitorItem, string visitorIpAddress);
 

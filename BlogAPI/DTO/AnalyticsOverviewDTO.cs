@@ -1,6 +1,6 @@
 ﻿namespace BlogAPI.DTO
 {
-    public class AnalyticsOverviewDTO
+    public class AnalyticsOverviewDto
     {
         public int TotalVisits { get; set; }
     }

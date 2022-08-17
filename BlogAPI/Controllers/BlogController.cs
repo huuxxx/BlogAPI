@@ -25,7 +25,7 @@ namespace BlogAPI.Controllers
         /// (1 = newest blog)
         /// </summary>
         [HttpPost("GetBlog")]
-        public async Task<ActionResult<BlogDTO>> GetBlog(GetBlog getBlog)
+        public async Task<ActionResult<BlogDto>> GetBlog(GetBlog getBlog)
         {
             return await service.GetBlog(getBlog);
         }
@@ -35,7 +35,7 @@ namespace BlogAPI.Controllers
         /// </summary>
         /// <returns>Blog item</returns>
         [HttpPost("GetBlogId")]
-        public async Task<ActionResult<BlogDTO>> GetBlogId(GetBlog getBlog)
+        public async Task<ActionResult<BlogDto>> GetBlogId(GetBlog getBlog)
         {
             return await service.GetBlog(getBlog);
         }
@@ -45,7 +45,7 @@ namespace BlogAPI.Controllers
         /// </summary>
         /// <returns>List of all blogs (ID, Title, Date Created)</returns>
         [HttpGet("GetAllBlogs")]
-        public async Task<ActionResult<List<BlogGetAllBlogsDTO>>> GetAllBlogs()
+        public async Task<ActionResult<List<BlogGetAllBlogsDto>>> GetAllBlogs()
         {
             return await service.GetAllBlogs();
         }
@@ -56,7 +56,7 @@ namespace BlogAPI.Controllers
         /// <param name="preventIncrement">default: false. If true it will prevent an increase to the view count of the blog</param>
         /// <returns>Blog item</returns>
         [HttpGet("GetBlogLatest")]
-        public async Task<ActionResult<BlogDTO>> GetBlogLatest(bool? preventIncrement = false)
+        public async Task<ActionResult<BlogDto>> GetBlogLatest(bool? preventIncrement = false)
         {
             return await service.GetBlogLatest((bool)preventIncrement);
         }
@@ -87,7 +87,7 @@ namespace BlogAPI.Controllers
         /// <param name="newBlogItemDTO">New blog item</param>
         /// <returns>Query result</returns>
         [HttpPost("CreateBlog"), Authorize]
-        public async Task<ActionResult<int>> CreateBlog(NewBlogItemDTO newBlogItemDTO)
+        public async Task<ActionResult<int>> CreateBlog(NewBlogItemDto newBlogItemDTO)
         {
             return await service.CreateBlog(newBlogItemDTO);
         }

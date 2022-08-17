@@ -7,10 +7,10 @@ namespace BlogAPI.Interfaces
 {
     public interface IErrorService
     {
-        Task<IEnumerable<ErrorItem>> GetAllErrors();
+        Task<IEnumerable<ErrorDto>> GetAllErrors();
 
         Task<int> DeleteAllErrors();
 
-        Task<int> PostError(ErrorItemDTO errorItem);
+        Task<int> PostError(Error errorItem);
     }
 }

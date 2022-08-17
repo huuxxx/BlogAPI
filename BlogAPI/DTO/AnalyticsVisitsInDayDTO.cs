@@ -1,6 +1,6 @@
 ﻿namespace BlogAPI.DTO
 {
-    public class AnalyticsVisitsInDayDTO
+    public class AnalyticsVisitsInDayDto
     {
         public int VisitsInDay { get; set; }
         public string NameOfDay { get; set; }

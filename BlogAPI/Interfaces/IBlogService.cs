@@ -9,19 +9,19 @@ namespace BlogAPI.Interfaces
 {
     public interface IBlogService
     {
-        Task<BlogDTO> GetBlog(GetBlog getBlog);
+        Task<BlogDto> GetBlog(GetBlog getBlog);
 
-        Task<BlogDTO> GetBlogById(GetBlog getBlog);
+        Task<BlogDto> GetBlogById(GetBlog getBlog);
 
-        Task<List<BlogGetAllBlogsDTO>> GetAllBlogs();
+        Task<List<BlogGetAllBlogsDto>> GetAllBlogs();
 
-        Task<BlogDTO> GetBlogLatest(bool preventIncrement);
+        Task<BlogDto> GetBlogLatest(bool preventIncrement);
 
         Task<int> GetBlogCount();
 
         Task<int> EditBlog(EditBlog editBlog);
 
-        Task<int> CreateBlog(NewBlogItemDTO newBlogItemDTO);
+        Task<int> CreateBlog(NewBlogItemDto newBlogItemDTO);
 
         Task<int> DeleteBlog(DeleteBlog deleteBlog);
 

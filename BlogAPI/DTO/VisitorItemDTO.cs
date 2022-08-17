@@ -2,7 +2,7 @@
 
 namespace BlogAPI.DTO
 {
-    public class VisitorItemDTO
+    public class VisitorItemDto
     {
         [Key]
         public string Id { get; set; }

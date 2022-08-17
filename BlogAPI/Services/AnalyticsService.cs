@@ -21,16 +21,16 @@ namespace BlogAPI.Services
             this.context = context;
         }
 
-        public Task<List<VisitorItemDTO>> GetLastVisits(int numOfRecords)
+        public Task<List<VisitorItemDto>> GetLastVisits(int numOfRecords)
         {
             var query = context.VisitorItem.OrderByDescending(x => x.Id).Take(numOfRecords);
             List<Visitor> queryResults = query.ToList();
             queryResults.Reverse();
-            List<VisitorItemDTO> retVal = new();
+            List<VisitorItemDto> retVal = new();
 
             for (int i = 0; i < queryResults.Count; i++)
             {
-                VisitorItemDTO tempItem = new();
+                VisitorItemDto tempItem = new();
                 tempItem.VisitorIP = queryResults[i].VisitorIP.ToString();
                 tempItem.DateVisited = queryResults[i].DateVisited.ToString("dd/MM/yyyy");
                 tempItem.ScreenHeight = queryResults[i].ScreenHeight.ToString();
@@ -44,23 +44,23 @@ namespace BlogAPI.Services
             return Task.FromResult(retVal);
         }
 
-        public Task<AnalyticsOverviewDTO> GetVisitorsCount()
+        public Task<AnalyticsOverviewDto> GetVisitorsCount()
         {
-            AnalyticsOverviewDTO overview = new();
+            AnalyticsOverviewDto overview = new();
             overview.TotalVisits = context.VisitorItem.Count();
             return Task.FromResult(overview);
         }
 
-        public Task<AnalyticsVisitsInDayDTO[]> GetVisitorsForEachDayThisWeek()
+        public Task<AnalyticsVisitsInDayDto[]> GetVisitorsForEachDayThisWeek()
         {
             // TODO: this would be much better stored as a cron job for the last 6 days, then append the current day
 
-            var retVal = new List<AnalyticsVisitsInDayDTO>();
+            var retVal = new List<AnalyticsVisitsInDayDto>();
             var cultureInfo = new CultureInfo("en-US");
 
             for (int i = DaysInWeek; i > 0; i--)
             {
-                AnalyticsVisitsInDayDTO tempDbObj = new();
+                AnalyticsVisitsInDayDto tempDbObj = new();
                 tempDbObj.NameOfDay = DateTime.Now.AddDays(-(i - 1)).DayOfWeek.ToString();
                 var dateSelector = DateTime.ParseExact(DateTime.Now.AddDays(-(i - 1)).ToString("yyyy/MM/dd"), "yyyy/MM/dd", cultureInfo);
                 var query = from x in context.VisitorItem

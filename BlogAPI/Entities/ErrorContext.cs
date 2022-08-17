@@ -1,4 +1,4 @@
-﻿using BlogAPI.DTO;
+﻿using BlogAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace BlogAPI.Entities
@@ -10,6 +10,6 @@ namespace BlogAPI.Entities
         {
         }
 
-        public DbSet<ErrorItemDTO> ErrorItem { get; set; }
+        public DbSet<Error> ErrorItem { get; set; }
     }
 }

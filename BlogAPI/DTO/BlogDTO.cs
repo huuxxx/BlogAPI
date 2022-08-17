@@ -1,6 +1,6 @@
 ﻿namespace BlogAPI.DTO
 {
-    public class BlogDTO
+    public class BlogDto
     {
         public int Id { get; set; }
         public string Title { get; set; }
